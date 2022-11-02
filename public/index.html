@@ -1,22 +1,26 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>face-api</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/addons/p5.sound.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/ml5js/Intro-ML-Arts-IMA@ml5-build-10-7-19/ml5_build/ml5.min.js"></script>
-    <script src="sketch.js"></script>
-    <link rel="stylesheet" type="text/css" href="./style.css" />
-    <meta charset="utf-8" />
-  </head>
-  <body>
-    <div class="form">
-      <input type="number" name="id" placeholder="Insert your ID" />
-      <input type="text" name="name" placeholder="Insert your name here" />
-      <div id="timer"></div>
-      <button id="new-person-btn">upload new person</button>
-      <canvas id="canvas" width="480" height="360"></canvas>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>face-api</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/addons/p5.sound.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/ml5js/Intro-ML-Arts-IMA@ml5-build-10-7-19/ml5_build/ml5.min.js"></script>
+  <script src="sketch.js"></script>
+  <link rel="stylesheet" type="text/css" href="./style.css" />
+  <meta charset="utf-8" />
+</head>
+
+<body>
+  <div class="form">
+    <input id="id" type="text" name="id" placeholder="Insert your ID" maxlength="9" />
+    <input id="name" type="text" name="name" placeholder="Insert your name here" />
+    <div id="timer">
     </div>
-  </body>
+    <button id="new-person-btn">Save new person</button>
+  </div>
+  <script src="sketch.js"></script>
+</body>
+
 </html>
