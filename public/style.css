@@ -1,0 +1,34 @@
+body {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(100, 95, 95, 0.76);
+}
+
+.form {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 2rem;
+  width: 50%;
+  height: 100%;
+}
+
+#new-person-btn {
+  font-size: 2rem;
+}
+
+#canvas {
+  position: relative;
+  top: 10px;
+  left: 0px;
+  z-index: 1;
+}
+
+#video {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 0;
+  border: 3px #fff solid;
+  border-radius: 10px;
+}
