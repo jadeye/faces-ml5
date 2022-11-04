@@ -37,6 +37,12 @@ app.get("/", (req, res) => {
   res.render("index.html");
 });
 
+app.get('/getFaces', async (req, res) => {
+  const faces = await FaceModel.find({});
+  if (!faces.length) return res.status(400).send({ success: false });
+  res.status(200).json(faces);
+})
+
 
 app.post('/uploadFace', async (req, res) => {
   const { id } = req.body

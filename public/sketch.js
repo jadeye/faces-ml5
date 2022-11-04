@@ -7,6 +7,18 @@ let video;
 let canvas;
 let face;
 
+
+async function loadFacesFromDB() {
+  return new Promise(async (resolve, reject) => {
+    const faces = await fetch(`http://localhost:${port}/getFaces`);
+    if (!faces && !faces.length) {
+      reject({ message: "Can't find faces" });
+    } else {
+      resolve(faces);
+    }
+  })
+}
+
 async function savePerson(face) {
   const id = document.getElementById('id').value;
   const name = document.getElementById('name').value;
@@ -32,6 +44,11 @@ async function savePerson(face) {
 
 function setup() {
   initUploadNewFaceButton();
+  loadFacesFromDB().then((res) => {
+    console.log("faces:", res);
+  }).catch((erro) => {
+    console.error(erro);
+  })
   canvas = createCanvas(720, 480);
   canvas.id("canvas");
 
