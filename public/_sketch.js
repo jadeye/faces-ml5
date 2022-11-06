@@ -4,20 +4,14 @@ const port = 5000;
 
 let faceapi;
 let detections = [];
-
+let faces;
 let video;
 let canvas;
 let face;
 
-// const faceOptions = {
-//   withLandmarks: true,
-//   withExpressions: true,
-//   withDescriptors: true,
-//   minConfidence: 0.5
-// };
 
-async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open']) {
-  // faceapi = await ml5.faceApi(video, faceOptions, faceReady);
+
+async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open', 'Yoni_Closed']) {
   return await Promise.all(
     labels.map(async label => {
       // fetch image data from urls and convert blob to HTMLImage element
@@ -35,7 +29,7 @@ async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open'
       const faceDescriptors = [fullFaceDescription.descriptor]
       console.log(fullFaceDescription.descriptor);
       console.log(faceDescriptors);
-      // alert('ff');
+
       return new faceapi.model.LabeledFaceDescriptors(label, faceDescriptors)
     })
   )
@@ -78,7 +72,6 @@ async function savePerson(face) {
 
 
 function setup() {
-
   initUploadNewFaceButton();
   loadFacesFromDB().then((res) => {
     console.log("faces:", res);
@@ -99,13 +92,7 @@ function setup() {
     minConfidence: 0.5
   };
 
-
-  // Unfinished code , should do comparison with landmarks and descriptor of video and image
-  // const maxDescriptorDistance = 0.6;
   faceapi = ml5.faceApi(video, faceOptions, faceReady);
-  // const faceMatcher = new faceapi.model.FaceMatcher();
-
-  //Initialize the model: モデルの初期化
 }
 
 let counterId = 0;
@@ -132,7 +119,6 @@ function initUploadNewFaceButton() {
   })
 }
 
-let faces;
 
 function faceReady() {
   getLabelFaceDescriptions().then((data) => {
@@ -150,15 +136,16 @@ function gotFaces(error, result) {
 
   detections = result;　//Now all the data in this detections: 全ての検知されたデータがこのdetectionの中に
   face = detections.length ? detections[0] : null; //if there is at least one detection
-  // console.log(detections);
 
-
-
-  const maxDescriptorDistance = 0.6;
   if (faces) {
+    const maxDescriptorDistance = 0.6;
     const faceMatcher = new faceapi.model.FaceMatcher(faces, maxDescriptorDistance);
     const recognitionResults = detections.map(fd => faceMatcher.findBestMatch(fd.descriptor));
-    console.log(recognitionResults);
+
+    for (let i = 0; i < recognitionResults.length; i++) {
+      detections[i]['label'] = recognitionResults[i]['_label'];
+
+    }
   }
 
 
@@ -166,7 +153,6 @@ function gotFaces(error, result) {
   drawBoxs(detections);//Draw detection box: 顔の周りの四角の描画
   drawLandmarks(detections);//// Draw all the face points: 全ての顔のポイントの描画
   drawExpressions(detections, 20, 250, 14);//Draw face expression: 表情の描画
-
   faceapi.detect(gotFaces);// Call the function again at here: 認識実行の関数をここでまた呼び出す
 }
 
@@ -178,6 +164,9 @@ function drawBoxs(detections) {
       strokeWeight(1);
       noFill();
       rect(_x, _y, _width, _height);
+      textSize(24);
+      text(detections[f]['label'], _x, _y);
+      fill(0, 153);
     }
   }
 }
