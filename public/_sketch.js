@@ -69,21 +69,45 @@ async function savePerson(face) {
 
 }
 
+function displayExpressions(expressions) {
+  // document.getElementsByClassName("expressions")[0].innerHTML = `${JSON.stringify(expressions)}`
+}
 
+// let canvas;
+
+function centerCanvas() {
+  var x = (windowWidth - width) / 2;
+  var y = (windowHeight - height) / 2;
+  canvas.position(x, y);
+  video.position(x, y);
+}
+
+function windowResized() {
+  // centerCanvas();
+}
 
 function setup() {
-  initUploadNewFaceButton();
+
+  // initUploadNewFaceButton();
   loadFacesFromDB().then((res) => {
     console.log("faces:", res);
   }).catch((erro) => {
     console.error(erro);
   })
-  canvas = createCanvas(720, 480);
+  //  createCanvas(720, 480);
+  canvas = createCanvas(windowWidth / 2, windowHeight / 2);
+  canvas.style('display', 'block');
   canvas.id("canvas");
+  const sketchHolder = document.getElementsByClassName("sketch-holder")[0];
+
+  sketchHolder.appendChild(document.querySelector("canvas"));
+  // canvas.appendChild(sketchHolder);
+
 
   video = createCapture(VIDEO);// Creat the video: ビデオオブジェクトを作る
+  console.log(canvas);
   video.id("video");
-  video.size(width, height);
+  video.size(windowWidth / 2, windowHeight / 2);
 
   const faceOptions = {
     withLandmarks: true,
@@ -91,6 +115,9 @@ function setup() {
     withDescriptors: true,
     minConfidence: 0.5
   };
+
+  sketchHolder.appendChild(document.querySelector("video"));
+
 
   faceapi = ml5.faceApi(video, faceOptions, faceReady);
 }
@@ -191,14 +218,15 @@ function drawExpressions(detections, x, y, textYSpace) {
     textSize(14);
     noStroke();
     fill(44, 169, 225);
+    displayExpressions({ neutral, happy, angry, sad, disgusted, surprised, fearful })
 
-    text("neutral:       " + nf(neutral * 100, 2, 2) + "%", x, y);
-    text("happiness: " + nf(happy * 100, 2, 2) + "%", x, y + textYSpace);
-    text("anger:        " + nf(angry * 100, 2, 2) + "%", x, y + textYSpace * 2);
-    text("sad:            " + nf(sad * 100, 2, 2) + "%", x, y + textYSpace * 3);
-    text("disgusted: " + nf(disgusted * 100, 2, 2) + "%", x, y + textYSpace * 4);
-    text("surprised:  " + nf(surprised * 100, 2, 2) + "%", x, y + textYSpace * 5);
-    text("fear:           " + nf(fearful * 100, 2, 2) + "%", x, y + textYSpace * 6);
+    // text("neutral:       " + nf(neutral * 100, 2, 2) + "%", x, y);
+    // text("happiness: " + nf(happy * 100, 2, 2) + "%", x, y + textYSpace);
+    // text("anger:        " + nf(angry * 100, 2, 2) + "%", x, y + textYSpace * 2);
+    // text("sad:            " + nf(sad * 100, 2, 2) + "%", x, y + textYSpace * 3);
+    // text("disgusted: " + nf(disgusted * 100, 2, 2) + "%", x, y + textYSpace * 4);
+    // text("surprised:  " + nf(surprised * 100, 2, 2) + "%", x, y + textYSpace * 5);
+    // text("fear:           " + nf(fearful * 100, 2, 2) + "%", x, y + textYSpace * 6);
   } else {//If no faces is detected: 顔が1つも検知されていなかったら
     text("neutral: ", x, y);
     text("happiness: ", x, y + textYSpace);
@@ -209,3 +237,46 @@ function drawExpressions(detections, x, y, textYSpace) {
     text("fear: ", x, y + textYSpace * 6);
   }
 }
+
+// YONI ADD ONS
+function add_to_table(index) {
+  let table = document.getElementById("content-table");
+  table.insertRow(1).id = index + 1;
+  let row = document.getElementById(index + 1)
+  let new_name = row.insertCell(0);
+  let new_time = row.insertCell(1);
+  let new_image = row.insertCell(1);
+  new_name.innerHTML = index + 1;
+  new_time.innerHTML = index;
+  new_image.innerHTML = index * 2;
+
+}
+
+for (let index = 0; index < 15; index++) {
+  add_to_table(index)
+}
+
+
+function add_class() {
+  let x = document.getElementById("content-table").rows.length - 1;
+  if (x % 2 == 0) {
+    for (let index = 0; index < x; index++) {
+      if (index % 2 != 0) {
+        let element = document.getElementById(index)
+        element.classList.add("active-row");
+        console.log(element);
+      } console.log("true")
+    }
+
+  }
+  else {
+    for (let index = 0; index < x; index++) {
+      if (index % 2 == 0 && index != 0) {
+        let element = document.getElementById(index)
+        element.classList.add("active-row");
+
+      }
+    }
+  }
+}
+add_class()

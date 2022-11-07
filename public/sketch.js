@@ -8,47 +8,8 @@ let canvas;
 let face;
 
 
-async function loadFacesFromDB() {
-  return new Promise(async (resolve, reject) => {
-    const faces = await fetch(`http://localhost:${port}/getFaces`);
-    if (!faces && !faces.length) {
-      reject({ message: "Can't find faces" });
-    } else {
-      resolve(faces);
-    }
-  })
-}
-
-async function savePerson(face) {
-  const id = document.getElementById('id').value;
-  const name = document.getElementById('name').value;
-
-
-  const rawResponse = await fetch(`http://localhost:${port}/uploadFace`, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      id: id,
-      name: name,
-      descriptors: face.descriptor,
-      parts: face.parts,
-    })
-  });
-  const content = await rawResponse.json();
-  console.log(content);
-
-}
-
 function setup() {
   initUploadNewFaceButton();
-  loadFacesFromDB().then((res) => {
-    console.log("faces:", res);
-  }).catch((erro) => {
-    console.error(erro);
-  })
   canvas = createCanvas(720, 480);
   canvas.id("canvas");
 
@@ -92,7 +53,20 @@ function initUploadNewFaceButton() {
     if (face !== null && face) {
       e.preventDefault();
       counterId = timeCounter(Date.now(), timerHtml);
-      await savePerson(face);
+
+      const rawResponse = await fetch(`http://localhost:${port}/uploadFace`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          descriptors: face.descriptor,
+          parts: face.parts,
+        })
+      });
+      const content = await rawResponse.json();
+      console.log(content);
     }
   })
 }
@@ -171,3 +145,46 @@ function drawExpressions(detections, x, y, textYSpace) {
     text("fear: ", x, y + textYSpace * 6);
   }
 }
+
+
+
+/////////////////////////////////////
+function add_to_table(index) {
+	let table = document.getElementById("content-table");
+	table.insertRow(1).id = index+1;
+	let row = document.getElementById(index+1)
+	let new_name = row.insertCell(0);
+	let new_time = row.insertCell(1);
+	let new_image = row.insertCell(1);
+	new_name.innerHTML = index+1;
+	new_time.innerHTML = index;
+	new_image.innerHTML = index*2;
+
+}
+
+for (let index = 0; index < 15; index++) {
+	add_to_table(index)
+}
+
+
+function add_class(){
+let x = document.getElementById("content-table").rows.length-1;
+	if(x%2 ==0){
+		for (let index = 0; index < x; index++) {
+		
+			if(index%2 != 0 ){
+			let element = document.getElementById(index)
+			element.classList.add("active-row");
+			console.log(element); }console.log("true")}
+			
+		}
+	else{
+		for (let index = 0; index < x; index++){
+		if(index%2 == 0 && index!=0 ){
+			let element = document.getElementById(index)
+			element.classList.add("active-row");
+			
+	}
+}	
+}}
+add_class()

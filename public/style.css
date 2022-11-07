@@ -1,34 +1,106 @@
-body {
+body , html{
   width: 100%;
   height: 100%;
-  background-color: rgba(100, 95, 95, 0.76);
 }
 
-.form {
+#new-person-btn{
+  font-size: 1.6rem;
+  background-color: #009879;
+  color:white;
+  border: none;
+  cursor: pointer;
+}
+
+#canvas{
   position: absolute;
-  top: 50%;
-  left: 50%;
-  font-size: 2rem;
-  width: 50%;
-  height: 100%;
-}
-
-#new-person-btn {
-  font-size: 2rem;
-}
-
-#canvas {
-  position: relative;
-  top: 10px;
-  left: 0px;
+  display: block;
   z-index: 1;
 }
 
-#video {
+#video{
   position: absolute;
   top: 10px;
   left: 10px;
-  z-index: 0;
-  border: 3px #fff solid;
-  border-radius: 10px;
+  z-index:0;
+  /* border: 3px #fff solid; */
+  /* padding-left: 32%;
+  padding-top: 10%; */
+}
+/* main{
+  padding-top: 10%;
+  padding-left: 32%;
+} */
+
+.form{
+  width:300px;
+  padding:5px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-space{
+  margin: 5px;
+}
+
+.content-table{
+  position: absolute;
+  top: 10%;
+  left: 75%;
+  font-size: 2rem;
+}
+
+* {
+  /* Change your font family */
+  font-family: sans-serif;
+}
+
+.content-table {
+  border-collapse: collapse;
+  /* margin: 25px 0; */
+  font-size: 0.9em;
+  min-width: 400px;
+  border-radius: 5px 5px 0 0;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.content-table tr.main_tr {
+  background-color: #009879;
+  color: #ffffff;
+  text-align: left;
+  font-weight: bold;
+text-align: center;
+
+}
+
+.content-table th,
+.content-table td {
+text-align: center;
+
+  padding: 12px 15px;
+}
+
+.content-table tr {
+  border-bottom: 1px solid #dddddd;
+}
+
+.content-table tr.active-row {
+  background-color: #f3f3f3;
+}
+
+.content-table tr:last-of-type {
+  border-bottom: 2px solid #009879;
+}
+
+.content-table tr.active-row {
+  font-weight: bold;
+  color: #009879;
+  text-align: center;
+}
+
+.flex-container {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  width: 80%;
 }
