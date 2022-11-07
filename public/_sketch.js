@@ -94,10 +94,10 @@ async function savePerson(face) {
 }
 
 function displayExpressions(expressions) {
-  const heightEmotionScroe = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
-  // document.getElementsByClassName("expressions")[0].innerHTML = `${JSON.stringify(getColorfulEmotion(heightEmotionScroe))}`;
-  const baseEmoji = `<i class='${icosClassNames[heightEmotionScroe]} ${heightEmotionScroe} fa-8x'></i>`
-  document.getElementsByClassName("expressions")[0].innerHTML = `${getColorfulEmotion(baseEmoji, heightEmotionScroe)}`
+  const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
+  // document.getElementsByClassName("expressions")[0].innerHTML = `${JSON.stringify(getColorfulEmotion(highestEmotionScore))}`;
+  const baseEmoji = `<i class='${icosClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i>`
+  document.getElementsByClassName("expressions")[0].innerHTML = `${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
 
 }
 

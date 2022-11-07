@@ -109,31 +109,31 @@ text-align: center;
 /* Emotions */
 
 .sad{
-  background-color: rgba(56, 92, 164, 0.729)
+  color: rgba(56, 92, 164, 0.729)
 }
 
 .happy {
-  background-color: rgba(112, 255, 17, 0.966);
+  color: rgba(112, 255, 17, 0.966);
 }
 
 .netural {
-  background-color: rgb(244, 225, 118);
+  color: rgb(244, 225, 118);
  }
 
  .fearful{
-  color:white;
-  background-color: rgba(41, 41, 41, 0.881);
+  color:rgb(165, 42, 161);
+  /* color: rgba(41, 41, 41, 0.881); */
  }
 
  .disgusted{
-  background-color: purple;
+  color: purple;
  }
 
  .angry{
-  background-color: rgb(189, 45, 45);
+  color: rgb(189, 45, 45);
  }
 
  .surprised{
-  background-color: brown;
+  color: brown;
   color: white;
  }
