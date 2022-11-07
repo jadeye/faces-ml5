@@ -8,6 +8,19 @@ const Expressions = {
   Surprised: "surprised",
 }
 
+const icosClassNames = {
+  happy: "fas fa-smile",
+  sad: "fa-solid fa-face-sad-tear",
+  angry: "fa-solid fa-face-angry",
+  disgusted: "fa-solid fa-face-dizzy",
+  fearful: "fa-solid fa-face-frown-open",
+  neutral: "fa-solid fa-face-meh",
+  surprised: "fa-solid fa-face-surprise"
+}
+
+
+// var camera = window.FontAwesome.icon({ prefix: 'fas', iconName: 'camera' })
+
 const port = 5000;
 // import * as FACE_API from '../dist/face-api.esm.js';
 
@@ -82,7 +95,10 @@ async function savePerson(face) {
 
 function displayExpressions(expressions) {
   const heightEmotionScroe = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
-  document.getElementsByClassName("expressions")[0].innerHTML = `${JSON.stringify(getColorfulEmotion(heightEmotionScroe))}`;
+  // document.getElementsByClassName("expressions")[0].innerHTML = `${JSON.stringify(getColorfulEmotion(heightEmotionScroe))}`;
+
+  document.getElementsByClassName("expressions")[0].innerHTML = `<i class='${icosClassNames[heightEmotionScroe]}'></i> ${heightEmotionScroe.toLowerCase()}`
+
 }
 
 function getColorfulEmotion(expression) {
@@ -95,6 +111,7 @@ function getColorfulEmotion(expression) {
       return "<span class='disgusted'>" + expression.toUpperCase() + "</span>";
     case Expressions.Happy:
       return "<span class='happy'>" + expression.toUpperCase() + "</span>";
+    // return "<i class='fa-solid fa-code'></i>"
     case Expressions.Neutral:
       return "<span class='neutral'>" + expression.toUpperCase() + "</span>";
     case Expressions.Surprised:
