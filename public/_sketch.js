@@ -96,28 +96,29 @@ async function savePerson(face) {
 function displayExpressions(expressions) {
   const heightEmotionScroe = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
   // document.getElementsByClassName("expressions")[0].innerHTML = `${JSON.stringify(getColorfulEmotion(heightEmotionScroe))}`;
-
-  document.getElementsByClassName("expressions")[0].innerHTML = `<i class='${icosClassNames[heightEmotionScroe]}'></i> ${heightEmotionScroe.toLowerCase()}`
+  const baseEmoji = `<i class='${icosClassNames[heightEmotionScroe]} ${heightEmotionScroe} fa-8x'></i>`
+  document.getElementsByClassName("expressions")[0].innerHTML = `${getColorfulEmotion(baseEmoji, heightEmotionScroe)}`
 
 }
 
-function getColorfulEmotion(expression) {
+function getColorfulEmotion(baseEmoji, expression) {
+  const wrapper = `<h1> ${baseEmoji} ${expression.toUpperCase()}</h1>`;
   switch (expression) {
     case Expressions.Sad:
-      return "<span class='sad'>" + expression.toUpperCase() + "</span>";
+      return "<span class='sad'>" + wrapper + "</span>";
     case Expressions.Angry:
-      return "<span class='angry'>" + expression.toUpperCase() + "</span>";
+      return "<span class='angry'>" + wrapper + "</span>";
     case Expressions.Disgusted:
-      return "<span class='disgusted'>" + expression.toUpperCase() + "</span>";
+      return "<span class='disgusted'>" + wrapper + "</span>";
     case Expressions.Happy:
-      return "<span class='happy'>" + expression.toUpperCase() + "</span>";
+      return "<span class='happy'>" + wrapper + "</span>";
     // return "<i class='fa-solid fa-code'></i>"
     case Expressions.Neutral:
-      return "<span class='neutral'>" + expression.toUpperCase() + "</span>";
+      return "<span class='neutral'>" + wrapper + "</span>";
     case Expressions.Surprised:
-      return "<span class='surprised'>" + expression.toUpperCase() + "</span>";
+      return "<span class='surprised'>" + wrapper + "</span>";
     case Expressions.Fearful:
-      return "<span class='fearful'>" + expression.toUpperCase() + "</span>";
+      return "<span class='fearful'>" + wrapper + "</span>";
     default:
       return "<span> Error </span>";
   }
@@ -126,7 +127,7 @@ function getColorfulEmotion(expression) {
 const updateThrottleText = throttle((expressions) => {
   console.log(expressions)
   displayExpressions(expressions)
-}, 100)
+}, 1000)
 
 
 /* > 0.39
