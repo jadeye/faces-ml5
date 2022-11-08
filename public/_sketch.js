@@ -102,30 +102,10 @@ function displayExpressions(expressions) {
 }
 
 function getColorfulEmotion(baseEmoji, expression) {
-  const wrapper = `<h1> ${baseEmoji} ${expression.toUpperCase()}</h1>`;
-  switch (expression) {
-    case Expressions.Sad:
-      return "<span class='sad'>" + wrapper + "</span>";
-    case Expressions.Angry:
-      return "<span class='angry'>" + wrapper + "</span>";
-    case Expressions.Disgusted:
-      return "<span class='disgusted'>" + wrapper + "</span>";
-    case Expressions.Happy:
-      return "<span class='happy'>" + wrapper + "</span>";
-    // return "<i class='fa-solid fa-code'></i>"
-    case Expressions.Neutral:
-      return "<span class='neutral'>" + wrapper + "</span>";
-    case Expressions.Surprised:
-      return "<span class='surprised'>" + wrapper + "</span>";
-    case Expressions.Fearful:
-      return "<span class='fearful'>" + wrapper + "</span>";
-    default:
-      return "<span> Error </span>";
-  }
+  return `<h1> ${baseEmoji} ${expression.toUpperCase()}</h1>`;
 }
 
 const updateThrottleText = throttle((expressions) => {
-  console.log(expressions)
   displayExpressions(expressions)
 }, 1000)
 
