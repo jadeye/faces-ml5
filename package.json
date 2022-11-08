@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "css-build": "node-sass --omit-source-map-url ./public/sass/styles.scss ./public/styles.css",
+    "css-watch": "npm run css-build -- --watch",
+    "start": "nodemon index.js && run css-watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
