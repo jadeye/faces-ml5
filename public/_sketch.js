@@ -18,13 +18,7 @@ const icosClassNames = {
   surprised: "fa-solid fa-face-surprise"
 }
 
-
-// var camera = window.FontAwesome.icon({ prefix: 'fas', iconName: 'camera' })
-
 const port = 5000;
-// import * as FACE_API from '../dist/face-api.esm.js';
-
-
 let faceapi;
 let detections = [];
 let faces;
@@ -32,7 +26,6 @@ let video;
 let canvas;
 let face;
 let expressions;
-// const 
 
 
 async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open', 'Yoni_Closed']) {
@@ -70,26 +63,30 @@ async function loadFacesFromDB() {
   })
 }
 
-async function savePerson(face) {
-  const id = document.getElementById('id').value;
-  const name = document.getElementById('name').value;
+function snapImage() {
+  return image(video, 0, 0); //draw the image being captured on webcam onto the canvas at the position (0, 0) of the canvas
+}
 
 
-  const rawResponse = await fetch(`http://localhost:${port}/uploadFace`, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      id: id,
-      name: name,
-      descriptors: face.descriptor,
-      parts: face.parts,
-    })
-  });
-  const content = await rawResponse.json();
-  console.log(content);
+async function savePerson(video) {
+
+  console.log(video);
+  // const rawResponse = await fetch(`http://localhost:${port}/uploadFace`, {
+  //   method: 'POST',
+  //   headers: {
+  //     'Accept': 'application/json',
+  //     'Content-Type': 'application/json'
+  //   },
+  //   body: JSON.stringify({
+  //     id: id,
+  //     name: name,
+  //     descriptors: face.descriptor,
+  //     parts: face.parts,
+  //   })
+  // });
+
+  // const content = await rawResponse.json();
+  // console.log(content);
 
 }
 
@@ -110,30 +107,6 @@ const updateThrottleText = throttle((expressions) => {
 }, 1000)
 
 
-/* > 0.39
-*angry = RED - spectrum 0.3-1
-: 
-0.5850219130516052
-* disgusted PRUPLE
-: 
-0.009359528310596943
-* fearful - BLACK
-: 
-0.00000575954027226544
-* happy - GREEN
-: 
-0.004009660799056292
-* neutral - YELLOW
-: 
-0.39498046040534973
-* sad - blue
-: 
-0.006038207095116377
-* surprised - WHITE
-: 
-0.0005844676634296775
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0S0 114.6 0 256S114.6 512 256 512zM164.1 325.5C182 346.2 212.6 368 256 368s74-21.8 91.9-42.5c5.8-6.7 15.9-7.4 22.6-1.6s7.4 15.9 1.6 22.6C349.8 372.1 311.1 400 256 400s-93.8-27.9-116.1-53.5c-5.8-6.7-5.1-16.8 1.6-22.6s16.8-5.1 22.6 1.6zM208.4 208c0 17.7-14.3 32-32 32s-32-14.3-32-32s14.3-32 32-32s32 14.3 32 32zm128 32c-17.7 0-32-14.3-32-32s14.3-32 32-32s32 14.3 32 32s-14.3 32-32 32z"/></svg>
-*/
 
 function throttle(cb, delay = 1000) {
   let shouldWait = false
@@ -161,41 +134,30 @@ function throttle(cb, delay = 1000) {
   }
 }
 
-// let canvas;
+let videoWidth, videoHeight;
 
-function centerCanvas() {
-  var x = (windowWidth - width) / 2;
-  var y = (windowHeight - height) / 2;
-  canvas.position(x, y);
-  video.position(x, y);
-}
-
-function windowResized() {
-  // centerCanvas();
-}
 
 function setup() {
 
-  // initUploadNewFaceButton();
   loadFacesFromDB().then((res) => {
     console.log("faces:", res);
   }).catch((erro) => {
     console.error(erro);
   })
-  //  createCanvas(720, 480);
-  canvas = createCanvas(windowWidth / 2, windowHeight / 2);
+  initUploadNewFaceButton();
+  videoHeight = windowHeight / 2;
+  videoWidth = windowWidth / 2;
+  console.log(videoWidth + " " + videoHeight);
+  canvas = createCanvas(videoWidth, videoHeight);
   canvas.style('display', 'block');
   canvas.id("canvas");
+
   const sketchHolder = document.getElementsByClassName("sketch-holder")[0];
-
   sketchHolder.appendChild(document.querySelector("canvas"));
-  // canvas.appendChild(sketchHolder);
-
 
   video = createCapture(VIDEO);// Creat the video: ビデオオブジェクトを作る
-  console.log(canvas);
   video.id("video");
-  video.size(windowWidth / 2, windowHeight / 2);
+  video.size(videoWidth, videoHeight);
 
   const faceOptions = {
     withLandmarks: true,
@@ -220,17 +182,43 @@ const timeCounter = (start, timerHtml) => setInterval(function () {
 
   timerHtml.innerHTML = Math.floor(delta / 1000)
 }, 1000); // update about every second
+/* 
 
+function mousePressed() {
+  saveFrames('out', 'png', 1, 1, data => {
+    return data;
+  });
+}
+ */
 function initUploadNewFaceButton() {
-  const timerHtml = document.getElementById('timer');
+  // const timerHtml = document.getElementById('timer');
   const btn = document.getElementById('new-person-btn');
+  btn.addEventListener("click", () => {
+    // const snapedImage = snapImage();
+    // const snapedImage = saveFrames('out', 'png', 1, 1);
+    // console.log(video.show)
+    const snapedImage = image(video, 0, 0, videoWidth, videoHeight);
+    save(`${snapedImage}.png`)
+    // const atImage = atob(snapedImage[0]['imageData']);
+    // console.log(atImage);
+  })
+  btn.enabled = false;
+  const id = document.getElementById('personId').value;
+  const name = document.getElementById('personName');
+  const nameValue = name.value;
+  name.addEventListener('focusout', (event) => {
+    // if id noEmpty && name.length > 2
+    // then Btn enambled
+    // on BtnClick capture image
+  });
 
+  console.log(btn);
   btn.addEventListener('click', async (e) => {
-    if (face !== null && face) {
-      e.preventDefault();
-      counterId = timeCounter(Date.now(), timerHtml);
-      await savePerson(face);
-    }
+    // if (face !== null && face) {
+    e.preventDefault();
+    // counterId = timeCounter(Date.now(), timerHtml);
+    await savePerson(video);
+    // }
   })
 }
 
@@ -238,11 +226,12 @@ function initUploadNewFaceButton() {
 function faceReady() {
   getLabelFaceDescriptions().then((data) => {
     faces = data;
+    console.log(faces)
   })
-  faceapi.detect(gotFaces);// Start detecting faces: 顔認識開始
+  faceapi.detect(gotFaces);// Start detecting faces
 }
 
-// Got faces: 顔を検知
+
 function gotFaces(error, result) {
   if (error) {
     console.log(error);
@@ -326,6 +315,13 @@ function drawExpressions(detections, x, y, textYSpace) {
     text("fear: ", x, y + textYSpace * 6);
   }
 }
+
+
+
+function takesnap() {
+  image(video, 0, 0); //draw the image being captured on webcam onto the canvas at the position (0, 0) of the canvas
+}
+
 
 // YONI ADD ONS
 function add_to_table(index) {

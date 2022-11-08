@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const ObjectId = Schema.ObjectId;
 
-const FaceSchema = new Schema({
+const RecognziedPeople = new Schema({
     id: {
         type: String,
         required: true
@@ -11,11 +10,11 @@ const FaceSchema = new Schema({
         type: String,
         required: true
     },
-    descriptors: {
-        type: Array,
+    imagePath: {
+        type: String,
         required: true
     },
 }, { timestamps: true });
 
 
-exports.FaceModel = mongoose.model('peopleFaces', FaceSchema);
+exports.FaceModel = mongoose.model('RecognziedPeople', RecognziedPeople);
