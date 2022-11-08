@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>face-api</title>
+  <title>face recognition manat</title>
   <script src="./lib/p5.js"></script>
   <script src="./lib/p5.sound.js"></script>
   <script src="./lib/ml5.min.js"></script>
@@ -26,37 +26,51 @@
 
 <body>
 
-  <div class="container">
-    <h1 class="display-1" style="text-align: center;">Face Detection & Recognition</h1>
-    <div class="row">
-      <div class="col-8">
+  <div>
+    <h1 style="text-align: center;" class="title is-1">Face Detection & Recognition</h1>
+    <div class="columns">
+      <div class="column">
         <div class="sketch-holder"></div>
       </div>
-      <div class="col-4">
+      <div class="column">
+        <h1 class="title is-4">List of Expressions:</h1>
         <div class="expressions">
-          <h1 class="display-6">Expressions:</h1>
 
         </div>
       </div>
     </div>
-    <div class="row">
-      <div class="col">
-        <form>
-          <div class="mb-3">
-            <label for="idInput" class="form-label">ID</label>
-            <input type="text" class="form-control" id="idInput" name="id" aria-describedby="emailHelp">
-            <div id="emailHelp" class="form-text">only 9 digit number allow</div>
+    <div class="columns">
+      <div class="column">
+
+        <h1 class="title is-4">
+          Add New Person Form
+        </h1>
+
+        <form class="is-centered">
+          <div class=" field">
+            <div class="control">
+              <input class="input" type="text" id="idInput" name="id" placeholder="id">
+            </div>
           </div>
-          <div class="mb-3">
-            <label for="inputName" class="form-label">Full Name</label>
-            <input type="text" class="form-control" name="name" id="nameInput">
+
+          <div class="field">
+            <div class="control">
+              <input class="input" type="text" name="name" id="nameInput" placeholder="Full Name">
+            </div>
           </div>
-          <button type="submit" id="new-person-btn" class="btn btn-primary">save new person's face</button>
+
+          <div class="columns is-centered">
+            <div class="column is-half">
+              <a class="button is-success">Save New Face</a>
+            </div>
+          </div>
+
         </form>
+
       </div>
-      <div class="col">
-        <div class="table-container">
-          <table class="content-table" id="content-table">
+      <div class="column">
+        <div>
+          <table class="table is-striped is-fullwidth" id="content-table">
             <thead>
               <tr class="main_tr">
                 <th>Image</th>
@@ -64,43 +78,14 @@
                 <th>Team</th>
               </tr>
             </thead>
+            <tbody>
+            </tbody>
           </table>
         </div>
       </div>
-      <div class="bulma">
-        <h1 class="title">
-          Bulma
-        </h1>
 
-        <p class="subtitle">
-          Modern CSS framework based on <a
-            href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Basic_Concepts_of_Flexbox">Flexbox</a>
-        </p>
 
-        <div class="field">
-          <div class="control">
-            <input class="input" type="text" placeholder="Input">
-          </div>
-        </div>
-
-        <div class="field">
-          <p class="control">
-            <span class="select">
-              <select>
-                <option>Select dropdown</option>
-              </select>
-            </span>
-          </p>
-        </div>
-
-        <div class="buttons">
-          <a class="button is-primary">Primary</a>
-          <a class="button is-link">Link</a>
-        </div>
-      </div>
     </div>
-
-  </div>
   </div>
   <script src="_sketch.js"></script>
 </body>
