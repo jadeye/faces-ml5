@@ -254,12 +254,16 @@ html {
 *, *::before, *::after {
   box-sizing: inherit; }
 
+.sketch-holder {
+margin-left: 12%;
+}
+  
 img,
 video {
   height: auto;
   max-width: 100%; }
 
-iframe {
+  iframe {
   border: 0; }
 
 table {

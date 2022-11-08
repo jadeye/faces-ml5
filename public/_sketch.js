@@ -148,16 +148,17 @@ function setup() {
   videoHeight = windowHeight / 2;
   videoWidth = windowWidth / 2;
   console.log(videoWidth + " " + videoHeight);
-  canvas = createCanvas(videoWidth, videoHeight);
+  canvas = createCanvas(640, 480);
   canvas.style('display', 'block');
   canvas.id("canvas");
 
   const sketchHolder = document.getElementsByClassName("sketch-holder")[0];
+  console.log(sketchHolder);
   sketchHolder.appendChild(document.querySelector("canvas"));
 
   video = createCapture(VIDEO);// Creat the video: ビデオオブジェクトを作る
   video.id("video");
-  video.size(videoWidth, videoHeight);
+  // video.size(videoWidth, videoHeight);
 
   const faceOptions = {
     withLandmarks: true,
@@ -197,7 +198,9 @@ function initUploadNewFaceButton() {
     // const snapedImage = snapImage();
     // const snapedImage = saveFrames('out', 'png', 1, 1);
     // console.log(video.show)
-    const snapedImage = image(video, 0, 0, videoWidth, videoHeight);
+    // const snapedImage = image(video, 0, 0, videoWidth, videoHeight, 0, 0, videoWidth, videoHeight, "COVER");
+    console.log(`${video.width} ${video.height}`);
+    const snapedImage = image(video, 0, 0);
     save(`${snapedImage}.png`)
     // const atImage = atob(snapedImage[0]['imageData']);
     // console.log(atImage);

@@ -10,13 +10,15 @@
   <script data-main="scripts/main" src="scripts/require.js"></script>
   <link rel="stylesheet" type="text/css" href="./styles.css">
 
-  <link rel="stylesheet" href="./sass/mystyle.css">
+  <!-- <link rel="stylesheet" href="./sass/styles.css"> -->
   <meta charset="utf-8" />
 </head>
 <style>
   #canvas {
     position: absolute;
     display: block;
+    /* max-width: 100%;
+    height: auto; */
     z-index: 1;
   }
 </style>
@@ -25,7 +27,7 @@
 
   <div>
     <h1 style="text-align: center;" class="title is-1">Face Detection & Recognition</h1>
-    <div class="columns">
+    <div class="columns is-multiline">
       <div class="column">
         <div class="sketch-holder"></div>
       </div>
@@ -38,8 +40,6 @@
     </div>
     <div class="columns">
       <div class="column">
-
-
         <div class="field">
           <input id="switchRoundedDefault" type="checkbox" name="switchRoundedDefault" class="switch is-rounded"
             checked="checked">
