@@ -27,6 +27,38 @@ let canvas;
 let face;
 let expressions;
 
+function setup() {
+
+  loadFacesFromDB().then((res) => {
+    console.log("faces:", res);
+  }).catch((erro) => {
+    console.error(erro);
+  })
+  initUploadNewFaceButton();
+  
+  canvas = createCanvas(640, 480);
+  canvas.style('display', 'block');
+  canvas.id("canvas");
+
+  const sketchHolder = document.getElementsByClassName("sketch-holder")[0];
+
+  sketchHolder.appendChild(document.querySelector("canvas"));
+
+  video = createCapture(VIDEO);// Creat the video
+  video.id("video");
+
+  const faceOptions = {
+    withLandmarks: true,
+    withExpressions: true,
+    withDescriptors: true,
+    minConfidence: 0.5
+  };
+
+  sketchHolder.appendChild(document.querySelector("video"));
+
+
+  faceapi = ml5.faceApi(video, faceOptions, faceReady);
+}
 
 async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open', 'Yoni_Closed']) {
   return await Promise.all(
@@ -38,14 +70,13 @@ async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open'
       // detect the face with the highest score in the image and compute it's landmarks and face descriptor
       const fullFaceDescription = await faceapi.model.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor()
 
-
       if (!fullFaceDescription) {
         throw new Error(`no faces detected for ${label}`)
       }
 
       const faceDescriptors = [fullFaceDescription.descriptor]
-      console.log(fullFaceDescription.descriptor);
-      console.log(faceDescriptors);
+      /* console.log(fullFaceDescription.descriptor);
+      console.log(faceDescriptors); */
 
       return new faceapi.model.LabeledFaceDescriptors(label, faceDescriptors)
     })
@@ -63,14 +94,9 @@ async function loadFacesFromDB() {
   })
 }
 
-function snapImage() {
-  return image(video, 0, 0); //draw the image being captured on webcam onto the canvas at the position (0, 0) of the canvas
-}
-
-
 async function savePerson(video) {
 
-  console.log(video);
+  // console.log(video);
   // const rawResponse = await fetch(`http://localhost:${port}/uploadFace`, {
   //   method: 'POST',
   //   headers: {
@@ -92,7 +118,6 @@ async function savePerson(video) {
 
 function displayExpressions(expressions) {
   const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
-  // document.getElementsByClassName("expressions")[0].innerHTML = `${JSON.stringify(getColorfulEmotion(highestEmotionScore))}`;
   const baseEmoji = `<i class='${icosClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i>`
   document.getElementsByClassName("expressions")[0].innerHTML = `${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
 
@@ -105,8 +130,6 @@ function getColorfulEmotion(baseEmoji, expression) {
 const updateThrottleText = throttle((expressions) => {
   displayExpressions(expressions)
 }, 1000)
-
-
 
 function throttle(cb, delay = 1000) {
   let shouldWait = false
@@ -134,45 +157,6 @@ function throttle(cb, delay = 1000) {
   }
 }
 
-let videoWidth, videoHeight;
-
-
-function setup() {
-
-  loadFacesFromDB().then((res) => {
-    console.log("faces:", res);
-  }).catch((erro) => {
-    console.error(erro);
-  })
-  initUploadNewFaceButton();
-  videoHeight = windowHeight / 2;
-  videoWidth = windowWidth / 2;
-  console.log(videoWidth + " " + videoHeight);
-  canvas = createCanvas(640, 480);
-  canvas.style('display', 'block');
-  canvas.id("canvas");
-
-  const sketchHolder = document.getElementsByClassName("sketch-holder")[0];
-  console.log(sketchHolder);
-  sketchHolder.appendChild(document.querySelector("canvas"));
-
-  video = createCapture(VIDEO);// Creat the video: ビデオオブジェクトを作る
-  video.id("video");
-  // video.size(videoWidth, videoHeight);
-
-  const faceOptions = {
-    withLandmarks: true,
-    withExpressions: true,
-    withDescriptors: true,
-    minConfidence: 0.5
-  };
-
-  sketchHolder.appendChild(document.querySelector("video"));
-
-
-  faceapi = ml5.faceApi(video, faceOptions, faceReady);
-}
-
 let counterId = 0;
 const timeCounter = (start, timerHtml) => setInterval(function () {
   let delta = Date.now() - start; // milliseconds elapsed since start
@@ -183,39 +167,35 @@ const timeCounter = (start, timerHtml) => setInterval(function () {
 
   timerHtml.innerHTML = Math.floor(delta / 1000)
 }, 1000); // update about every second
-/* 
 
-function mousePressed() {
-  saveFrames('out', 'png', 1, 1, data => {
-    return data;
-  });
-}
- */
 function initUploadNewFaceButton() {
-  // const timerHtml = document.getElementById('timer');
-  const btn = document.getElementById('new-person-btn');
-  btn.addEventListener("click", () => {
-    console.log(`${video.width} ${video.height}`);
-    const snapedImage = image(video, 0, 0);
-    let img = createImage(0, 0);
-    console.log(img);
-    save(`${snapedImage}.png`)
-    save(img, `${img}.png`)
-    // const atImage = atob(snapedImage[0]['imageData']);
-    // console.log(atImage);
-  })
-  btn.enabled = false;
-  const id = document.getElementById('personId').value;
+
+  const id = document.getElementById('personId');
   const name = document.getElementById('personName');
+  const idValue = id.value;
   const nameValue = name.value;
+
+  const captureImageBtn = document.getElementById('new-person-btn');
+  captureImageBtn.disabled = true;
+
+  captureImageBtn.addEventListener("click", () => {
+    const snapedImage = image(video, 0, 0);
+    console.log(`snapedImage ${snapedImage}.png`);
+    save(`${snapedImage}.png`)
+  })
+
   name.addEventListener('focusout', (event) => {
     // if id noEmpty && name.length > 2
     // then Btn enambled
     // on BtnClick capture image
+    if((name.length >= 2) && (id.length >= 8)){
+      alert("222");
+      captureImageBtn.disabled = false;
+    }
   });
 
-  console.log(btn);
-  btn.addEventListener('click', async (e) => {
+  console.log(captureImageBtn);
+  captureImageBtn.addEventListener('click', async (e) => {
     // if (face !== null && face) {
     e.preventDefault();
     // counterId = timeCounter(Date.now(), timerHtml);
@@ -223,7 +203,6 @@ function initUploadNewFaceButton() {
     // }
   })
 }
-
 
 function faceReady() {
   getLabelFaceDescriptions().then((data) => {
@@ -233,14 +212,13 @@ function faceReady() {
   faceapi.detect(gotFaces);// Start detecting faces
 }
 
-
 function gotFaces(error, result) {
   if (error) {
     console.log(error);
     return;
   }
 
-  detections = result;　//Now all the data in this detections: 全ての検知されたデータがこのdetectionの中に
+  detections = result;　//Now all the data in this detections
   face = detections.length ? detections[0] : null; //if there is at least one detection
 
   if (faces) {
@@ -254,12 +232,11 @@ function gotFaces(error, result) {
     }
   }
 
-
-  clear();//Draw transparent background;: 透明の背景を描く
-  drawBoxs(detections);//Draw detection box: 顔の周りの四角の描画
-  drawLandmarks(detections);//// Draw all the face points: 全ての顔のポイントの描画
-  drawExpressions(detections, 20, 250, 14);//Draw face expression: 表情の描画
-  faceapi.detect(gotFaces);// Call the function again at here: 認識実行の関数をここでまた呼び出す
+  clear();//Draw transparent background
+  drawBoxs(detections);//Draw detection box
+  drawLandmarks(detections);//// Draw all the face points
+  drawExpressions(detections, 20, 250, 14);//Draw face expression
+  faceapi.detect(gotFaces);// Call the function again at here
 }
 
 function drawBoxs(detections) {
@@ -351,8 +328,8 @@ function add_class() {
       if (index % 2 != 0) {
         let element = document.getElementById(index)
         element.classList.add("active-row");
-        console.log(element);
-      } console.log("true")
+        // console.log(element);
+      } // console.log("true")
     }
 
   }
