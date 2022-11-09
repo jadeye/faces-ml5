@@ -6,7 +6,28 @@ const helmet = require("helmet");
 const mongoose = require("mongoose");
 const app = express();
 const PORT = process.env.PORT || 5000;
-const { FaceModel } = require("./models/face.js")
+const { FaceModel } = require("./models/face.js");
+const multer = require('multer');
+const bodyParser = require('body-parser');
+const path = require('path');
+
+//multer options
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, 'images'))
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  }
+})
+
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+
+const uploads = multer({
+  storage: storage
+});
 
 app.use(express.static(__dirname + "/public"));
 
@@ -17,7 +38,6 @@ mongoose.connect('mongodb://localhost/recognized_faces')
     console.error(err);
   });
 
-//cors & helmet => for security
 app.use(cors());
 app.use(helmet());
 
@@ -33,8 +53,15 @@ app.use(
 );
 
 app.get("/", (req, res) => {
-  // res.json("API running.");
   res.render("index.html");
+});
+
+// upload images route
+app.post('/upload', uploads.single('image'), (req, res) => {
+  console.log(req.file.path)
+  res.status(200).sendFile(req.file.path);
+}, (error, req, res, next) => {
+  res.status(400).send({ error: error.message })
 });
 
 app.get('/getFaces', async (req, res) => {

@@ -195,13 +195,12 @@ function initUploadNewFaceButton() {
   // const timerHtml = document.getElementById('timer');
   const btn = document.getElementById('new-person-btn');
   btn.addEventListener("click", () => {
-    // const snapedImage = snapImage();
-    // const snapedImage = saveFrames('out', 'png', 1, 1);
-    // console.log(video.show)
-    // const snapedImage = image(video, 0, 0, videoWidth, videoHeight, 0, 0, videoWidth, videoHeight, "COVER");
     console.log(`${video.width} ${video.height}`);
     const snapedImage = image(video, 0, 0);
+    let img = createImage(0, 0);
+    console.log(img);
     save(`${snapedImage}.png`)
+    save(img, `${img}.png`)
     // const atImage = atob(snapedImage[0]['imageData']);
     // console.log(atImage);
   })
