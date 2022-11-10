@@ -1,3 +1,5 @@
+// const { addAttendence } = require("./table");
+
 const Expressions = {
   Sad: "sad",
   Angry: "angry",
@@ -8,7 +10,7 @@ const Expressions = {
   Surprised: "surprised",
 }
 
-const icosClassNames = {
+const iconsClassNames = {
   happy: "fas fa-smile",
   sad: "fa-solid fa-face-sad-tear",
   angry: "fa-solid fa-face-angry",
@@ -26,6 +28,8 @@ let video;
 let canvas;
 let face;
 let expressions;
+const tableBody = document.getElementById('content-table');
+
 
 
 async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open', 'Yoni_Closed']) {
@@ -34,18 +38,13 @@ async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open'
       // fetch image data from urls and convert blob to HTMLImage element
       const imgUrl = `./photos/${label}.jpg`
       const img = await faceapi.model.fetchImage(imgUrl)
-
       // detect the face with the highest score in the image and compute it's landmarks and face descriptor
       const fullFaceDescription = await faceapi.model.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor()
-
-
       if (!fullFaceDescription) {
         throw new Error(`no faces detected for ${label}`)
       }
 
-      const faceDescriptors = [fullFaceDescription.descriptor]
-      console.log(fullFaceDescription.descriptor);
-      console.log(faceDescriptors);
+      const faceDescriptors = [fullFaceDescription.descriptor];
 
       return new faceapi.model.LabeledFaceDescriptors(label, faceDescriptors)
     })
@@ -63,38 +62,34 @@ async function loadFacesFromDB() {
   })
 }
 
-function snapImage() {
-  return image(video, 0, 0); //draw the image being captured on webcam onto the canvas at the position (0, 0) of the canvas
-}
-
-
 async function savePerson(video) {
 
   console.log(video);
-  // const rawResponse = await fetch(`http://localhost:${port}/uploadFace`, {
-  //   method: 'POST',
-  //   headers: {
-  //     'Accept': 'application/json',
-  //     'Content-Type': 'application/json'
-  //   },
-  //   body: JSON.stringify({
-  //     id: id,
-  //     name: name,
-  //     descriptors: face.descriptor,
-  //     parts: face.parts,
-  //   })
-  // });
+  const rawResponse = await fetch(`http://localhost:${port}/uploadFace`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      id: id,
+      name: name,
+      descriptors: await faceapi.model.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor(),
+    })
+  });
 
-  // const content = await rawResponse.json();
-  // console.log(content);
+  const content = await rawResponse.json();
+  console.log(content);
 
 }
 
-function displayExpressions(expressions) {
+function displayExpressions(expressionsObj) {
+  const expressions = expressionsObj.expressions;
+  const name = expressionsObj.label;
   const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
   // document.getElementsByClassName("expressions")[0].innerHTML = `${JSON.stringify(getColorfulEmotion(highestEmotionScore))}`;
-  const baseEmoji = `<i class='${icosClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i>`
-  document.getElementsByClassName("expressions")[0].innerHTML = `${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
+  const baseEmoji = `<i class='${iconsClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i>`
+  document.getElementsByClassName("expressions")[0].innerHTML = `${name} ${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
 
 }
 
@@ -143,11 +138,10 @@ function setup() {
     console.log("faces:", res);
   }).catch((erro) => {
     console.error(erro);
-  })
+  });
+
   initUploadNewFaceButton();
-  videoHeight = windowHeight / 2;
-  videoWidth = windowWidth / 2;
-  console.log(videoWidth + " " + videoHeight);
+
   canvas = createCanvas(640, 480);
   canvas.style('display', 'block');
   canvas.id("canvas");
@@ -158,7 +152,6 @@ function setup() {
 
   video = createCapture(VIDEO);// Creat the video: ビデオオブジェクトを作る
   video.id("video");
-  // video.size(videoWidth, videoHeight);
 
   const faceOptions = {
     withLandmarks: true,
@@ -168,8 +161,6 @@ function setup() {
   };
 
   sketchHolder.appendChild(document.querySelector("video"));
-
-
   faceapi = ml5.faceApi(video, faceOptions, faceReady);
 }
 
@@ -183,28 +174,17 @@ const timeCounter = (start, timerHtml) => setInterval(function () {
 
   timerHtml.innerHTML = Math.floor(delta / 1000)
 }, 1000); // update about every second
-/* 
 
-function mousePressed() {
-  saveFrames('out', 'png', 1, 1, data => {
-    return data;
-  });
-}
- */
 function initUploadNewFaceButton() {
   // const timerHtml = document.getElementById('timer');
   const btn = document.getElementById('new-person-btn');
   btn.addEventListener("click", () => {
     console.log(`${video.width} ${video.height}`);
     const snapedImage = image(video, 0, 0);
-    let img = createImage(0, 0);
-    console.log(img);
     save(`${snapedImage}.png`)
-    save(img, `${img}.png`)
-    // const atImage = atob(snapedImage[0]['imageData']);
-    // console.log(atImage);
   })
-  btn.enabled = false;
+
+  btn.disabled = false;
   const id = document.getElementById('personId').value;
   const name = document.getElementById('personName');
   const nameValue = name.value;
@@ -217,11 +197,26 @@ function initUploadNewFaceButton() {
   console.log(btn);
   btn.addEventListener('click', async (e) => {
     // if (face !== null && face) {
+
     e.preventDefault();
     // counterId = timeCounter(Date.now(), timerHtml);
     await savePerson(video);
     // }
   })
+}
+
+
+function addToTable({ name, img, date }) {
+  let table = document.getElementById("content-table");
+  let row = table.insertRow(1);
+  let new_name = row.insertCell(0);
+  let new_time = row.insertCell(1);
+  let new_image = row.insertCell(1);
+  const imgDt = document.createElement('img');
+  imgDt.src = img
+  new_name.appendChild(imgDt);
+  new_time.innerHTML = date;
+  new_image.innerHTML = name;
 }
 
 
@@ -250,16 +245,17 @@ function gotFaces(error, result) {
 
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
-
+      // addAttendence({ name: detections[i]['label'], img: "nullPNG", date: new Date() });
+      addToTable({ name: detections[i]['label'], img: "null.jpg", date: new Date() })
     }
   }
 
 
-  clear();//Draw transparent background;: 透明の背景を描く
-  drawBoxs(detections);//Draw detection box: 顔の周りの四角の描画
+  clear();//Draw transparent background;: 
+  drawBoxs(detections);//Draw detection box: 
   drawLandmarks(detections);//// Draw all the face points: 全ての顔のポイントの描画
-  drawExpressions(detections, 20, 250, 14);//Draw face expression: 表情の描画
-  faceapi.detect(gotFaces);// Call the function again at here: 認識実行の関数をここでまた呼び出す
+  drawExpressions(detections, 20, 250, 14);//Draw face expression: 
+  faceapi.detect(gotFaces);// Call the function again at here: 
 }
 
 function drawBoxs(detections) {
@@ -297,8 +293,10 @@ function drawExpressions(detections, x, y, textYSpace) {
     textSize(14);
     noStroke();
     fill(44, 169, 225);
-    // displayExpressions()
-    updateThrottleText({ neutral, happy, angry, sad, disgusted, surprised, fearful })
+    let expressionsArr = detections.map((detect) => { return { label: detect.label, expressions: detect.expressions } });
+    expressionsArr.forEach(element => {
+      updateThrottleText(element)
+    });
 
     // text("neutral:       " + nf(neutral * 100, 2, 2) + "%", x, y);
     // text("happiness: " + nf(happy * 100, 2, 2) + "%", x, y + textYSpace);
@@ -317,53 +315,3 @@ function drawExpressions(detections, x, y, textYSpace) {
     text("fear: ", x, y + textYSpace * 6);
   }
 }
-
-
-
-function takesnap() {
-  image(video, 0, 0); //draw the image being captured on webcam onto the canvas at the position (0, 0) of the canvas
-}
-
-
-// YONI ADD ONS
-function add_to_table(index) {
-  let table = document.getElementById("content-table");
-  table.insertRow(1).id = index + 1;
-  let row = document.getElementById(index + 1)
-  let new_name = row.insertCell(0);
-  let new_time = row.insertCell(1);
-  let new_image = row.insertCell(1);
-  new_name.innerHTML = index + 1;
-  new_time.innerHTML = index;
-  new_image.innerHTML = index * 2;
-
-}
-
-for (let index = 0; index < 15; index++) {
-  add_to_table(index)
-}
-
-
-function add_class() {
-  let x = document.getElementById("content-table").rows.length - 1;
-  if (x % 2 == 0) {
-    for (let index = 0; index < x; index++) {
-      if (index % 2 != 0) {
-        let element = document.getElementById(index)
-        element.classList.add("active-row");
-        console.log(element);
-      } console.log("true")
-    }
-
-  }
-  else {
-    for (let index = 0; index < x; index++) {
-      if (index % 2 == 0 && index != 0) {
-        let element = document.getElementById(index)
-        element.classList.add("active-row");
-
-      }
-    }
-  }
-}
-add_class()
