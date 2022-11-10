@@ -11,7 +11,7 @@ const multer = require('multer');
 const bodyParser = require('body-parser');
 const path = require('path');
 const { RecognizedPeople } = require("./models/recognizedPeople.js");
-const detectedPeople = [];
+const authorizedPeople = [];
 
 //multer options
 const storage = multer.diskStorage({
@@ -55,23 +55,29 @@ app.use(
   })
 );
 
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
+  authorizedPeople = await FaceModel.find({}); // get all authorized people
   res.render("index.html");
 });
 
+// TODO: to check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
 
-app.post('/detectPeople',  async (req, res) => {
+app.post('/detectPeople', async (req, res) => {
   const { name, id } = req.body;
-  // find person by id
-  // const person = detectedPeople.find((person) => person.id === id);
-  // if (!person) {
-  //   detectedPeople.push(person);
-  // } else if(person){
-  //   detectedPeople.
-  // }
+  const person = authorizedPeople.find((person) => person.id === id); // get the authorized person
   
-  const result = await RecognizedPeople.create({id , name , imagePath:"hardcoded path"});
-  res.status(200).json(result);
+  
+  if (person) {
+    authorizedPeople = authorizedPeople.filter((person) => person.id !== person.id); // remove the auth person from the array
+    const result = await RecognizedPeople.create({ id, name, imagePath: "hardcoded path" });
+    setTimeout(()=>{
+      authorizedPeople.push(person);
+    },15 * 1000)
+    
+    res.status(200).json({ success: true, payload: result });
+  } else if (!person) {
+    res.status(400).send({ success: false, message: "Unrecognized person" });
+  }
 });
 
 

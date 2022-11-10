@@ -27,6 +27,7 @@ let canvas;
 let face;
 let expressions;
 const tableBody = document.getElementById('content-table');
+const BASE_API = `http://localhost:${port}`
 
 const HARD_CODED_IMG = "https://www.simplilearn.com/ice9/free_resources_article_thumb/Advantages_and_Disadvantages_of_artificial_intelligence.jpg";
 
@@ -230,7 +231,20 @@ function faceReady() {
   faceapi.detect(gotFaces);// Start detecting faces
 }
 
-function gotFaces(error, result) {
+async function sendPostRequest(route, json) {
+  const rawResponse = await fetch(`${BASE_API}${route}`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(json)
+  });
+
+  return await rawResponse.json();
+}
+
+async function gotFaces(error, result) {
   if (error) {
     console.log(error);
     return;
@@ -246,7 +260,9 @@ function gotFaces(error, result) {
 
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
-      addToTable({ name: detections[i]['label'], img: HARD_CODED_IMG, date: new Date() })
+      
+      // const detectedPerson = await sendPostRequest('/detectPeople' , {id:'322525999' , name: detections[i]['label'], img: HARD_CODED_IMG});
+      addToTable({name: detections[i]['label'], img: HARD_CODED_IMG});
     }
   }
 
