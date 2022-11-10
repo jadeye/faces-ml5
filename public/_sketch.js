@@ -72,8 +72,6 @@ async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open'
       }
 
       const faceDescriptors = [fullFaceDescription.descriptor];
-      /* console.log(fullFaceDescription.descriptor);
-      console.log(faceDescriptors); */
 
       return new faceapi.model.LabeledFaceDescriptors(label, faceDescriptors)
     })
@@ -248,7 +246,6 @@ function gotFaces(error, result) {
 
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
-      // addAttendence({ name: detections[i]['label'], img: "nullPNG", date: new Date() });
       addToTable({ name: detections[i]['label'], img: "null", date: new Date() })
     }
   }
@@ -290,34 +287,8 @@ function drawLandmarks(detections) {
 }
 
 function drawExpressions(detections, x, y, textYSpace) {
-  if (detections.length > 0) {//If at least 1 face is detected: もし1つ以上の顔が検知されていたら
-    // let { neutral, happy, angry, sad, disgusted, surprised, fearful } = detections[0].expressions;
-    textFont('Helvetica Neue');
-    textSize(14);
-    noStroke();
-    fill(44, 169, 225);
+  if (detections.length > 0) {   //If at least 1 face is detected
     let expressionsArr = detections.map((detect) => { return { label: detect.label, expressions: detect.expressions } });
-    console.log(expressionsArr);
-    // clearExpressions();
-
     updateThrottleText(expressionsArr)
-
-
-    // text("neutral:       " + nf(neutral * 100, 2, 2) + "%", x, y);
-    // text("happiness: " + nf(happy * 100, 2, 2) + "%", x, y + textYSpace);
-    // text("anger:        " + nf(angry * 100, 2, 2) + "%", x, y + textYSpace * 2);
-    // text("sad:            " + nf(sad * 100, 2, 2) + "%", x, y + textYSpace * 3);
-    // text("disgusted: " + nf(disgusted * 100, 2, 2) + "%", x, y + textYSpace * 4);
-    // text("surprised:  " + nf(surprised * 100, 2, 2) + "%", x, y + textYSpace * 5);
-    // text("fear:           " + nf(fearful * 100, 2, 2) + "%", x, y + textYSpace * 6);
-  } else {//If no faces is detected: 顔が1つも検知されていなかったら
-    // text("neutral: ", x, y);
-    // text("happiness: ", x, y + textYSpace);
-    // text("anger: ", x, y + textYSpace * 2);
-    // text("sad: ", x, y + textYSpace * 3);
-    // text("disgusted: ", x, y + textYSpace * 4);
-    // text("surprised: ", x, y + textYSpace * 5);
-    // text("fear: ", x, y + textYSpace * 6);
-    text('no face detected');
-  }
+  } else text('no face detected');    //If no faces is detected
 }
