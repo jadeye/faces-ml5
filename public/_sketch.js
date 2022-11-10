@@ -84,7 +84,7 @@ async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open'
 
 async function loadFacesFromDB() {
   return new Promise(async (resolve, reject) => {
-    const faces = await fetch(`http://localhost:${port}/getFaces`);
+    const faces = await fetch(`${BASE_API}/getFaces`);
     if (!faces && !faces.length) {
       reject({ message: "Can't find faces" });
     } else {
