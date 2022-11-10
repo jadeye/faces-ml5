@@ -122,10 +122,12 @@ function displayExpressions(expressionsArr) {
   expressionsArr.forEach(expression => {
     const expressions = expression.expressions;
     const name = expression.label;
-    const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
-    const baseEmoji = `<i class='${iconsClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i>`
-    
-    document.getElementsByClassName("expressions")[0].innerHTML += `${name} ${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
+    if (name !== 'unknown') {
+      const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
+      const baseEmoji = `<div class='column'> <i class='${iconsClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i> </div>`
+
+      document.getElementsByClassName("expressions")[0].innerHTML += `${name} ${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
+    }
   });
 
 }
