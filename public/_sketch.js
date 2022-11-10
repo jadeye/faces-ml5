@@ -260,9 +260,17 @@ async function gotFaces(error, result) {
 
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
-      
-      // const detectedPerson = await sendPostRequest('/detectPeople' , {id:'322525999' , name: detections[i]['label'], img: HARD_CODED_IMG});
-      addToTable({name: detections[i]['label'], img: HARD_CODED_IMG});
+
+      const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: '322525999', name: detections[i]['label'], img: HARD_CODED_IMG });
+      console.log(detectedPersonResponse)
+      if (detectedPersonResponse['success']) {
+        addToTable({
+          name: detectedPersonResponse.payload.name,
+          img: detectedPersonResponse.payload.imagePath,
+          date: new Date()
+        });
+      }
+
     }
   }
 

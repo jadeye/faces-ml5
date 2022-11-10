@@ -11,7 +11,7 @@ const multer = require('multer');
 const bodyParser = require('body-parser');
 const path = require('path');
 const { RecognizedPeople } = require("./models/recognizedPeople.js");
-const authorizedPeople = [];
+let authorizedPeople = [];
 
 //multer options
 const storage = multer.diskStorage({
@@ -35,8 +35,10 @@ const uploads = multer({
 app.use(express.static(__dirname + "/public"));
 
 mongoose.connect('mongodb://localhost/recognized_faces')
-  .then(() => {
+  .then(async () => {
     console.log('DB Connection eastablished');
+    authorizedPeople = await FaceModel.find(); // get all authorized people
+    console.log(authorizedPeople)
   }).catch((err) => {
     console.error(err);
   });
@@ -56,7 +58,6 @@ app.use(
 );
 
 app.get("/", async (req, res) => {
-  authorizedPeople = await FaceModel.find({}); // get all authorized people
   res.render("index.html");
 });
 
@@ -64,18 +65,19 @@ app.get("/", async (req, res) => {
 
 app.post('/detectPeople', async (req, res) => {
   const { name, id } = req.body;
-  const person = authorizedPeople.find((person) => person.id === id); // get the authorized person
-  
-  
-  if (person) {
-    authorizedPeople = authorizedPeople.filter((person) => person.id !== person.id); // remove the auth person from the array
+  console.log({ name, id })
+  const authPerson = authorizedPeople.find((person) => person.id === id); // get the authorized person
+
+
+  if (authPerson) {
+    authorizedPeople = authorizedPeople.filter((person) => person.id !== authPerson.id); // remove the auth person from the array
     const result = await RecognizedPeople.create({ id, name, imagePath: "hardcoded path" });
-    setTimeout(()=>{
-      authorizedPeople.push(person);
-    },15 * 1000)
-    
+    setTimeout(() => {
+      authorizedPeople.push(authPerson);
+    }, 15 * 1000)
+
     res.status(200).json({ success: true, payload: result });
-  } else if (!person) {
+  } else if (!authPerson) {
     res.status(400).send({ success: false, message: "Unrecognized person" });
   }
 });
