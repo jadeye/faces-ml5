@@ -57,18 +57,36 @@ app.get("/", (req, res) => {
   res.render("index.html");
 });
 
+app.post('/user-data', (req, res) => {
+  console.log(`Request Body: \n\r
+  ================================================================\n\r
+  {req.body["FormData"]}`);
+  res.send(JSON.stringify(req.FormData));
+  // res.status();
+}, (error, req, res, next) => {
+  res.status(400).send({ error: error.message })
+})
+
 // upload images route
-app.post('/upload', uploads.single("uploaded_file"), (req, res) => {
-  console.log(uploads.single)
+app.post('/upload', uploads.single("img"), (req, res) => {
+  //console.log(uploads.single)
   req.file.filename = req.body.name;
-  console.log(req.file.filename);
-  console.log(req.file.path);
-  console.log(req.body.name);
+  // console.log(req.file.filename);
+  // console.log(req.file.path);
+  // console.log(req.body.name);
   res.status(200).sendFile(req.file.path);
 }, (error, req, res, next) => {
   res.status(400).send({ error: error.message })
 });
 
+/* 
+app.post("/upload", uploads.array("img"), uploadFiles);
+
+function uploadFiles(req, res) {
+    console.log(req.body);
+    console.log(req.img);
+}
+ */
 app.get('/getFaces', async (req, res) => {
   const faces = await FaceModel.find({});
   if (!faces.length) return res.status(400).send({ success: false });

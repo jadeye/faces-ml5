@@ -170,27 +170,62 @@ const timeCounter = (start, timerHtml) => setInterval(function () {
 
 function initUploadNewFaceButton() {
 
-  const id = document.getElementById('personId');
-  const name = document.getElementById('personName');
-  const idValue = id.value;
-  const nameValue = name.value;
+  const userId = document.getElementById('personId');
+  const userName = document.getElementById('personName');
+  let idValue;
+  let nameValue;
 
   const captureImageBtn = document.getElementById('new-person-btn');
   captureImageBtn.disabled = true;
 
   captureImageBtn.addEventListener("click", () => {
     const snapedImage = image(video, 0, 0);
-    console.log(`snapedImage ${snapedImage}.png`);
-    save(`${snapedImage}.png`)
+    // saveCanvas(`${nameValue}.png`);
+    /* saveFrames(`${nameValue}.png`, (data) => {
+      console.log(data)
+    }); */
+    let userImageCapture = document.getElementById("userImageCapture");
+    saveFrames(`${nameValue}`, 'png', 1, 25, data => {
+      userImageCapture.src = `${data[0]["imageData"]}`;
+      // console.log(data);
+      console.log(data[0]["imageData"]);
+    });
+
+    const form = document.getElementById("userDetails");
+
+      form.addEventListener("submit", submitForm);
+
+      function submitForm(e) {
+          e.preventDefault();
+          const userImg = document.getElementById("userImageCapture").src;
+          const formData = new FormData();
+          formData.append("name", nameValue);
+          formData.append("id", idValue);
+          formData.append("img", userImg)
+          // console.log(formData);
+          console.log(`Request Body: \n\r
+          ================================================================\n\r
+          ${FormData.getAll()}`);
+          
+          fetch("http://localhost:5000/user-data", {
+              method: 'POST',
+              body: formData,
+              headers: {
+                "Content-Type": "multipart/form-data"
+              }
+          })
+              .then((res) => console.log(res))
+              .catch((err) => ("Error occured", err));
+      }
   })
 
-  name.addEventListener('focusout', (event) => {
-    // if id noEmpty && name.length > 2
-    // then Btn enambled
-    // on BtnClick capture image
-    if((name.length >= 2) && (id.length >= 8)){
-      alert("222");
+  userName.addEventListener('focusout', (event) => {
+    idValue = userId.value;
+    nameValue = userName.value;
+    if((nameValue.length >= 2) && (idValue.length >= 8)){
       captureImageBtn.disabled = false;
+    } else {
+      captureImageBtn.disabled = true;
     }
   });
 
