@@ -30,10 +30,12 @@ const tableBody = document.getElementById('content-table');
 const BASE_API = `http://localhost:${port}`
 
 const HARD_CODED_IMG = "https://www.simplilearn.com/ice9/free_resources_article_thumb/Advantages_and_Disadvantages_of_artificial_intelligence.jpg";
+let dbPeopleData;
 
 function setup() {
   loadFacesFromDB().then((res) => {
     console.log("faces:", res);
+    dbPeopleData = res;
   }).catch((erro) => {
     console.error(erro);
   })
