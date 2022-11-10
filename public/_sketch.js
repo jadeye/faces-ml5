@@ -205,7 +205,7 @@ function initUploadNewFaceButton() {
           // console.log(formData);
           console.log(`Request Body: \n\r
           ================================================================\n\r
-          ${FormData.getAll()}`);
+          ${FormData.length}`);
           
           fetch("http://localhost:5000/user-data", {
               method: 'POST',

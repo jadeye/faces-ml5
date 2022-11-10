@@ -10,6 +10,8 @@ const { FaceModel } = require("./models/face.js");
 const multer = require('multer');
 const bodyParser = require('body-parser');
 const path = require('path');
+const { RecognizedPeople } = require("./models/recognizedPeople.js");
+const detectedPeople = [];
 
 //multer options
 const storage = multer.diskStorage({
@@ -66,6 +68,21 @@ app.post('/user-data', (req, res) => {
 }, (error, req, res, next) => {
   res.status(400).send({ error: error.message })
 })
+
+app.post('/detectPeople',  async (req, res) => {
+  const { name, id } = req.body;
+  // find person by id
+  // const person = detectedPeople.find((person) => person.id === id);
+  // if (!person) {
+  //   detectedPeople.push(person);
+  // } else if(person){
+  //   detectedPeople.
+  // }
+  
+  const result = await RecognizedPeople.create({id , name , imagePath:"hardcoded path"});
+  res.status(200).json(result);
+});
+
 
 // upload images route
 app.post('/upload', uploads.single("img"), (req, res) => {

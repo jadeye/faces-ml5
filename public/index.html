@@ -47,11 +47,13 @@
       </div>
       <div class="column">
         <h1 class="title is-4">List of Expressions:</h1>
-        <div class="expressions">
+        <div class="expressions columns is-multiline">
+
         </div>
       </div>
     </div>
-    <div class="columns mx-4 is-multiline">
+
+    <div class="columns">
       <div class="column">
         <div class="field">
           <input id="switchRoundedDefault" type="checkbox" name="switchRoundedDefault" class="switch is-rounded"
@@ -104,7 +106,7 @@
         </form>
       </div>
       <div class="column">
-        <div>
+        <div style="height:400px; overflow:auto;">
           <table class="table is-striped is-fullwidth" id="content-table">
             <thead>
               <tr class="main_tr">
@@ -113,7 +115,7 @@
                 <th>Date</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="content-table-body">
             </tbody>
           </table>
         </div>
