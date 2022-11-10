@@ -30,7 +30,6 @@ const tableBody = document.getElementById('content-table');
 
 
 function setup() {
-
   loadFacesFromDB().then((res) => {
     console.log("faces:", res);
   }).catch((erro) => {
@@ -57,8 +56,6 @@ function setup() {
   };
 
   sketchHolder.appendChild(document.querySelector("video"));
-
-
   faceapi = ml5.faceApi(video, faceOptions, faceReady);
 }
 
@@ -111,18 +108,25 @@ async function savePerson(video) {
   //   })
   // });
 
-  const content = await rawResponse.json();
-  console.log(content);
+  // const content = await rawResponse.json();
+  // console.log(content);
 
 }
 
-function displayExpressions(expressionsObj) {
-  const expressions = expressionsObj.expressions;
-  const name = expressionsObj.label;
-  const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
-  // document.getElementsByClassName("expressions")[0].innerHTML = `${JSON.stringify(getColorfulEmotion(highestEmotionScore))}`;
-  const baseEmoji = `<i class='${iconsClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i>`
-  document.getElementsByClassName("expressions")[0].innerHTML = `${name} ${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
+function clearExpressions() {
+  document.getElementsByClassName("expressions")[0].innerHTML = "";
+}
+
+function displayExpressions(expressionsArr) {
+  document.getElementsByClassName("expressions")[0].innerHTML = "";
+  expressionsArr.forEach(expression => {
+    const expressions = expression.expressions;
+    const name = expression.label;
+    const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
+    const baseEmoji = `<i class='${iconsClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i>`
+    
+    document.getElementsByClassName("expressions")[0].innerHTML += `${name} ${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
+  });
 
 }
 
@@ -192,19 +196,14 @@ function initUploadNewFaceButton() {
     // then Btn enambled
     // on BtnClick capture image
     if ((name.length >= 2) && (id.length >= 8)) {
-      alert("222");
       captureImageBtn.disabled = false;
     }
   });
 
   console.log(captureImageBtn);
   captureImageBtn.addEventListener('click', async (e) => {
-    // if (face !== null && face) {
-
     e.preventDefault();
-    // counterId = timeCounter(Date.now(), timerHtml);
     await savePerson(video);
-    // }
   })
 }
 
@@ -248,7 +247,7 @@ function gotFaces(error, result) {
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
       // addAttendence({ name: detections[i]['label'], img: "nullPNG", date: new Date() });
-      addToTable({ name: detections[i]['label'], img: "null.jpg", date: new Date() })
+      addToTable({ name: detections[i]['label'], img: "null", date: new Date() })
     }
   }
 
@@ -290,15 +289,17 @@ function drawLandmarks(detections) {
 
 function drawExpressions(detections, x, y, textYSpace) {
   if (detections.length > 0) {//If at least 1 face is detected: もし1つ以上の顔が検知されていたら
-    let { neutral, happy, angry, sad, disgusted, surprised, fearful } = detections[0].expressions;
+    // let { neutral, happy, angry, sad, disgusted, surprised, fearful } = detections[0].expressions;
     textFont('Helvetica Neue');
     textSize(14);
     noStroke();
     fill(44, 169, 225);
     let expressionsArr = detections.map((detect) => { return { label: detect.label, expressions: detect.expressions } });
-    expressionsArr.forEach(element => {
-      updateThrottleText(element)
-    });
+    console.log(expressionsArr);
+    // clearExpressions();
+
+    updateThrottleText(expressionsArr)
+
 
     // text("neutral:       " + nf(neutral * 100, 2, 2) + "%", x, y);
     // text("happiness: " + nf(happy * 100, 2, 2) + "%", x, y + textYSpace);
