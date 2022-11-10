@@ -17,6 +17,7 @@ const storage = multer.diskStorage({
     cb(null, path.join(__dirname, 'images'))
   },
   filename: (req, file, cb) => {
+    console.log(`saveReq: ${file.filename}`)
     cb(null, file.originalname);
   }
 })
@@ -57,8 +58,12 @@ app.get("/", (req, res) => {
 });
 
 // upload images route
-app.post('/upload', uploads.single('image'), (req, res) => {
-  console.log(req.file.path)
+app.post('/upload', uploads.single("uploaded_file"), (req, res) => {
+  console.log(uploads.single)
+  req.file.filename = req.body.name;
+  console.log(req.file.filename);
+  console.log(req.file.path);
+  console.log(req.body.name);
   res.status(200).sendFile(req.file.path);
 }, (error, req, res, next) => {
   res.status(400).send({ error: error.message })

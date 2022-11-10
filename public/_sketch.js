@@ -1,5 +1,3 @@
-// const { addAttendence } = require("./table");
-
 const Expressions = {
   Sad: "sad",
   Angry: "angry",
@@ -31,6 +29,38 @@ let expressions;
 const tableBody = document.getElementById('content-table');
 
 
+function setup() {
+
+  loadFacesFromDB().then((res) => {
+    console.log("faces:", res);
+  }).catch((erro) => {
+    console.error(erro);
+  })
+  initUploadNewFaceButton();
+
+  canvas = createCanvas(640, 480);
+  canvas.style('display', 'block');
+  canvas.id("canvas");
+
+  const sketchHolder = document.getElementsByClassName("sketch-holder")[0];
+
+  sketchHolder.appendChild(document.querySelector("canvas"));
+
+  video = createCapture(VIDEO);// Creat the video
+  video.id("video");
+
+  const faceOptions = {
+    withLandmarks: true,
+    withExpressions: true,
+    withDescriptors: true,
+    minConfidence: 0.5
+  };
+
+  sketchHolder.appendChild(document.querySelector("video"));
+
+
+  faceapi = ml5.faceApi(video, faceOptions, faceReady);
+}
 
 async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open', 'Yoni_Closed']) {
   return await Promise.all(
@@ -45,6 +75,8 @@ async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open'
       }
 
       const faceDescriptors = [fullFaceDescription.descriptor];
+      /* console.log(fullFaceDescription.descriptor);
+      console.log(faceDescriptors); */
 
       return new faceapi.model.LabeledFaceDescriptors(label, faceDescriptors)
     })
@@ -64,19 +96,20 @@ async function loadFacesFromDB() {
 
 async function savePerson(video) {
 
-  console.log(video);
-  const rawResponse = await fetch(`http://localhost:${port}/uploadFace`, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      id: id,
-      name: name,
-      descriptors: await faceapi.model.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor(),
-    })
-  });
+  // console.log(video);
+  // const rawResponse = await fetch(`http://localhost:${port}/uploadFace`, {
+  //   method: 'POST',
+  //   headers: {
+  //     'Accept': 'application/json',
+  //     'Content-Type': 'application/json'
+  //   },
+  //   body: JSON.stringify({
+  //     id: id,
+  //     name: name,
+  //     descriptors: face.descriptor,
+  //     parts: face.parts,
+  //   })
+  // });
 
   const content = await rawResponse.json();
   console.log(content);
@@ -100,8 +133,6 @@ function getColorfulEmotion(baseEmoji, expression) {
 const updateThrottleText = throttle((expressions) => {
   displayExpressions(expressions)
 }, 1000)
-
-
 
 function throttle(cb, delay = 1000) {
   let shouldWait = false
@@ -129,41 +160,6 @@ function throttle(cb, delay = 1000) {
   }
 }
 
-let videoWidth, videoHeight;
-
-
-function setup() {
-
-  loadFacesFromDB().then((res) => {
-    console.log("faces:", res);
-  }).catch((erro) => {
-    console.error(erro);
-  });
-
-  initUploadNewFaceButton();
-
-  canvas = createCanvas(640, 480);
-  canvas.style('display', 'block');
-  canvas.id("canvas");
-
-  const sketchHolder = document.getElementsByClassName("sketch-holder")[0];
-  console.log(sketchHolder);
-  sketchHolder.appendChild(document.querySelector("canvas"));
-
-  video = createCapture(VIDEO);// Creat the video: ビデオオブジェクトを作る
-  video.id("video");
-
-  const faceOptions = {
-    withLandmarks: true,
-    withExpressions: true,
-    withDescriptors: true,
-    minConfidence: 0.5
-  };
-
-  sketchHolder.appendChild(document.querySelector("video"));
-  faceapi = ml5.faceApi(video, faceOptions, faceReady);
-}
-
 let counterId = 0;
 const timeCounter = (start, timerHtml) => setInterval(function () {
   let delta = Date.now() - start; // milliseconds elapsed since start
@@ -176,26 +172,33 @@ const timeCounter = (start, timerHtml) => setInterval(function () {
 }, 1000); // update about every second
 
 function initUploadNewFaceButton() {
-  // const timerHtml = document.getElementById('timer');
-  const btn = document.getElementById('new-person-btn');
-  btn.addEventListener("click", () => {
-    console.log(`${video.width} ${video.height}`);
+
+  const id = document.getElementById('personId');
+  const name = document.getElementById('personName');
+  const idValue = id.value;
+  const nameValue = name.value;
+
+  const captureImageBtn = document.getElementById('new-person-btn');
+  captureImageBtn.disabled = true;
+
+  captureImageBtn.addEventListener("click", () => {
     const snapedImage = image(video, 0, 0);
+    console.log(`snapedImage ${snapedImage}.png`);
     save(`${snapedImage}.png`)
   })
 
-  btn.disabled = false;
-  const id = document.getElementById('personId').value;
-  const name = document.getElementById('personName');
-  const nameValue = name.value;
   name.addEventListener('focusout', (event) => {
     // if id noEmpty && name.length > 2
     // then Btn enambled
     // on BtnClick capture image
+    if ((name.length >= 2) && (id.length >= 8)) {
+      alert("222");
+      captureImageBtn.disabled = false;
+    }
   });
 
-  console.log(btn);
-  btn.addEventListener('click', async (e) => {
+  console.log(captureImageBtn);
+  captureImageBtn.addEventListener('click', async (e) => {
     // if (face !== null && face) {
 
     e.preventDefault();
@@ -228,14 +231,13 @@ function faceReady() {
   faceapi.detect(gotFaces);// Start detecting faces
 }
 
-
 function gotFaces(error, result) {
   if (error) {
     console.log(error);
     return;
   }
 
-  detections = result;　//Now all the data in this detections: 全ての検知されたデータがこのdetectionの中に
+  detections = result;　//Now all the data in this detections
   face = detections.length ? detections[0] : null; //if there is at least one detection
 
   if (faces) {
@@ -306,12 +308,13 @@ function drawExpressions(detections, x, y, textYSpace) {
     // text("surprised:  " + nf(surprised * 100, 2, 2) + "%", x, y + textYSpace * 5);
     // text("fear:           " + nf(fearful * 100, 2, 2) + "%", x, y + textYSpace * 6);
   } else {//If no faces is detected: 顔が1つも検知されていなかったら
-    text("neutral: ", x, y);
-    text("happiness: ", x, y + textYSpace);
-    text("anger: ", x, y + textYSpace * 2);
-    text("sad: ", x, y + textYSpace * 3);
-    text("disgusted: ", x, y + textYSpace * 4);
-    text("surprised: ", x, y + textYSpace * 5);
-    text("fear: ", x, y + textYSpace * 6);
+    // text("neutral: ", x, y);
+    // text("happiness: ", x, y + textYSpace);
+    // text("anger: ", x, y + textYSpace * 2);
+    // text("sad: ", x, y + textYSpace * 3);
+    // text("disgusted: ", x, y + textYSpace * 4);
+    // text("surprised: ", x, y + textYSpace * 5);
+    // text("fear: ", x, y + textYSpace * 6);
+    text('no face detected');
   }
 }
