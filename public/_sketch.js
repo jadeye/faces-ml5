@@ -28,6 +28,7 @@ let face;
 let expressions;
 const tableBody = document.getElementById('content-table');
 
+const HARD_CODED_IMG = "https://www.simplilearn.com/ice9/free_resources_article_thumb/Advantages_and_Disadvantages_of_artificial_intelligence.jpg";
 
 function setup() {
   loadFacesFromDB().then((res) => {
@@ -111,9 +112,6 @@ async function savePerson(video) {
 
 }
 
-function clearExpressions() {
-  document.getElementsByClassName("expressions")[0].innerHTML = "";
-}
 
 function displayExpressions(expressionsArr) {
   document.getElementsByClassName("expressions")[0].innerHTML = "";
@@ -215,6 +213,8 @@ function addToTable({ name, img, date }) {
   let new_time = row.insertCell(1);
   let new_image = row.insertCell(1);
   const imgDt = document.createElement('img');
+  imgDt.style.width = '25px';
+  imgDt.style.height = '25px';
   imgDt.src = img
   new_name.appendChild(imgDt);
   new_time.innerHTML = date;
@@ -246,7 +246,7 @@ function gotFaces(error, result) {
 
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
-      addToTable({ name: detections[i]['label'], img: "null", date: new Date() })
+      addToTable({ name: detections[i]['label'], img: HARD_CODED_IMG, date: new Date() })
     }
   }
 
