@@ -14,6 +14,8 @@ const { RecognizedPeople } = require("./models/recognizedPeople.js");
 let authorizedPeople = [];
 const fs = require('fs');
 
+const IMG_PATH = "./images";
+
 //multer options
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -64,15 +66,22 @@ app.get("/", async (req, res) => {
   res.render("index.html");
 });
 
+const getBase64StringFromDataURL = (dataURL) =>
+    dataURL.replace('data:', '').replace(/^.+,/, '');
+
 app.post('/user-data', (req, res) => {
   console.log(req.body);
+  const name = req.body.name;
   const imageBase64 = req.body.uploaded_file;
-  const STR = 'data:image/octet-stream;base64';
+  const base64img = getBase64StringFromDataURL(imageBase64);
+  // console.log(base64img);
+  const buffer = Buffer.from(base64img, "base64");
+  fs.writeFileSync(`${IMG_PATH}/${name}.png"`,buffer);
+
+  /* const STR = 'data:image/octet-stream;base64';
   const indx = imageBase64.indexOf(STR);
   console.log(imageBase64.substring(indx,50));
-  const buffer = Buffer.from(imageBase64.substring(indx), "base64");
-  fs.writeFileSync("myimage.png",buffer);
-
+ */
   res.send({success:true , message:"ok"});
   // res.status();
 }, (error, req, res, next) => {

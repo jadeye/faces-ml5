@@ -27,6 +27,7 @@ let video;
 let canvas;
 let face;
 let expressions;
+const cameraSwitch = document.getElementById("switchRoundedDefault");
 const tableBody = document.getElementById('content-table');
 const BASE_API = `http://localhost:${port}`
 
@@ -62,8 +63,12 @@ function setup() {
 
   sketchHolder.appendChild(document.querySelector("video"));
   faceapi = ml5.faceApi(video, faceOptions, faceReady);
+
 }
 
+cameraSwitch.addEventListener('click', (e) => {
+  console.log(e.checked.value);
+})
 async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open', 'Yoni_Closed']) {
   return await Promise.all(
     labels.map(async label => {
