@@ -8,7 +8,7 @@ const Expressions = {
   Surprised: "surprised",
 }
 
-const icosClassNames = {
+const iconsClassNames = {
   happy: "fas fa-smile",
   sad: "fa-solid fa-face-sad-tear",
   angry: "fa-solid fa-face-angry",
@@ -17,6 +17,7 @@ const icosClassNames = {
   neutral: "fa-solid fa-face-meh",
   surprised: "fa-solid fa-face-surprise"
 }
+
 
 const port = 5000;
 let faceapi;
@@ -122,11 +123,18 @@ async function savePerson(video) {
 
 }
 
-function displayExpressions(expressions) {
-  const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
-  const baseEmoji = `<i class='${icosClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i>`
-  document.getElementsByClassName("expressions")[0].innerHTML = `${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
+function displayExpressions(expressionsArr) {
+  document.getElementsByClassName("expressions")[0].innerHTML = "";
+  expressionsArr.forEach(expression => {
+    const expressions = expression.expressions;
+    const name = expression.label;
+    if (name !== 'unknown') {
+      const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
+      const baseEmoji = `<div class='column'> <i class='${iconsClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i> </div>`
 
+      document.getElementsByClassName("expressions")[0].innerHTML += `${name} ${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
+    }
+  });
 }
 
 function getColorfulEmotion(baseEmoji, expression) {
@@ -332,32 +340,12 @@ function drawLandmarks(detections) {
 }
 
 function drawExpressions(detections, x, y, textYSpace) {
-  if (detections.length > 0) {//If at least 1 face is detected: もし1つ以上の顔が検知されていたら
-    let { neutral, happy, angry, sad, disgusted, surprised, fearful } = detections[0].expressions;
-    textFont('Helvetica Neue');
-    textSize(14);
-    noStroke();
-    fill(44, 169, 225);
-    // displayExpressions()
-    updateThrottleText({ neutral, happy, angry, sad, disgusted, surprised, fearful })
-
-    // text("neutral:       " + nf(neutral * 100, 2, 2) + "%", x, y);
-    // text("happiness: " + nf(happy * 100, 2, 2) + "%", x, y + textYSpace);
-    // text("anger:        " + nf(angry * 100, 2, 2) + "%", x, y + textYSpace * 2);
-    // text("sad:            " + nf(sad * 100, 2, 2) + "%", x, y + textYSpace * 3);
-    // text("disgusted: " + nf(disgusted * 100, 2, 2) + "%", x, y + textYSpace * 4);
-    // text("surprised:  " + nf(surprised * 100, 2, 2) + "%", x, y + textYSpace * 5);
-    // text("fear:           " + nf(fearful * 100, 2, 2) + "%", x, y + textYSpace * 6);
-  } else {//If no faces is detected: 顔が1つも検知されていなかったら
-    text("neutral: ", x, y);
-    text("happiness: ", x, y + textYSpace);
-    text("anger: ", x, y + textYSpace * 2);
-    text("sad: ", x, y + textYSpace * 3);
-    text("disgusted: ", x, y + textYSpace * 4);
-    text("surprised: ", x, y + textYSpace * 5);
-    text("fear: ", x, y + textYSpace * 6);
-  }
+  if (detections.length > 0) {   //If at least 1 face is detected
+    let expressionsArr = detections.map((detect) => { return { label: detect.label, expressions: detect.expressions } });
+    updateThrottleText(expressionsArr)
+  } else text('no face detected');    //If no faces is detected
 }
+
 
 
 function addToTable({ name, img, date }) {
