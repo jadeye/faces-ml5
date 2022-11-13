@@ -14,6 +14,9 @@ const { RecognizedPeople } = require("./models/recognizedPeople.js");
 const { savePersonFace } = require("./services/person.js");
 const { getAllFaces } = require("./services/profilePicture.js");
 let authorizedPeople = [];
+const fs = require('fs');
+
+const IMG_PATH = "./images";
 
 //multer options
 const storage = multer.diskStorage({
@@ -21,21 +24,14 @@ const storage = multer.diskStorage({
     cb(null, path.join(__dirname, 'images'))
   },
   filename: (req, file, cb) => {
-    console.log(`saveReq: ${file.filename}`)
+    // console.log(`saveReq: ${file.filename}`)
     cb(null, file.originalname);
   }
 })
 
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-
 const uploads = multer({
   storage: storage
 });
-
-app.use(express.static(__dirname + "/public"));
-
 mongoose.connect('mongodb://localhost/recognized_faces')
   .then(async () => {
     console.log('DB Connection eastablished');
@@ -45,29 +41,50 @@ mongoose.connect('mongodb://localhost/recognized_faces')
     console.error(err);
   });
 
+
+
+app.use(express.static(__dirname + "/public"));
+// app.use(express.json({limit: '50mb'}));
+app.use(bodyParser.json({limit: '50mb'}));
 app.use(cors());
-app.use(helmet());
+app.use(helmet());    
+/* 
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+ */
+app.use(bodyParser.urlencoded({
+  limit: "50mb", 
+  extended: true, 
+  parameterLimit: 50000
+}));
 
 // used to log requests
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-app.use(
-  express.json({
-    extended: false,
-  })
-);
-
 app.get("/", async (req, res) => {
   res.render("index.html");
 });
 
+const getBase64StringFromDataURL = (dataURL) =>
+    dataURL.replace('data:', '').replace(/^.+,/, '');
+
 app.post('/user-data', (req, res) => {
-  console.log(`Request Body: \n\r
-  ================================================================\n\r
-  {req.body["FormData"]}`);
-  res.send(JSON.stringify(req.FormData));
+  console.log(req.body);
+  const name = req.body.name;
+  const imageBase64 = req.body.uploaded_file;
+  const base64img = getBase64StringFromDataURL(imageBase64);
+  // console.log(base64img);
+  const buffer = Buffer.from(base64img, "base64");
+  fs.writeFileSync(`${IMG_PATH}/${name}.png"`,buffer);
+
+  /* const STR = 'data:image/octet-stream;base64';
+  const indx = imageBase64.indexOf(STR);
+  console.log(imageBase64.substring(indx,50));
+ */
+  res.send({success:true , message:"ok"});
   // res.status();
   //todo: save path image to folder and create new person save his profile. 
   // savePersonFace({id, name, imagePath});
@@ -78,7 +95,7 @@ app.post('/user-data', (req, res) => {
 
 app.post('/detectPeople', async (req, res) => {
   const { name, id } = req.body;
-  console.log({ name, id })
+  // console.log({ name, id })
   const authPerson = authorizedPeople.find((person) => person.id === id); // get the authorized person
 
 
