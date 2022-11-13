@@ -22,21 +22,6 @@
     z-index: 1;
   }
 </style>
-<script>
-  // Get a reference to our file input
-  // const fileInput = document.getElementById('imageUpload');
-
-  // // Create a new File object
-  // const myFile = new File([''], 'myFile.txt', {
-  //     type: 'text/plain',
-  //     lastModified: new Date(),
-  // });
-
-  // // Now let's create a DataTransfer to get a FileList
-  // const dataTransfer = new DataTransfer();
-  // dataTransfer.items.add(myFile);
-  // fileInput.files = dataTransfer.files;
-</script>
 
 <body>
 
@@ -68,7 +53,8 @@
           <div class="field">
             <label class="label">ID</label>
             <div class="control">
-              <input class="input" type="text" name="id" id="personId" placeholder="id" value="">
+              <input class="input" pattern="[0-9\/]*" type="text" name="id" id="personId" placeholder="id" value=""
+                maxlength="9">
             </div>
           </div>
 

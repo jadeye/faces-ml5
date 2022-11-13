@@ -12,6 +12,10 @@ const RecognziedPeople = new Schema({
         type: String,
         required: true
     },
+    descriptors:{
+        type: Array,
+        required: true
+    },
     imagePath: {
         type: ObjectId,
         required: true

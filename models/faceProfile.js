@@ -7,7 +7,7 @@ const FaceProfile = new Schema({
         type: String,
         required: true
     },
-    imgPath:{
+    imagePath: {
         type: String,
         required: true
     }
