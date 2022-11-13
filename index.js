@@ -76,12 +76,8 @@ app.post('/user-data', (req, res) => {
   const base64img = getBase64StringFromDataURL(imageBase64);
   // console.log(base64img);
   const buffer = Buffer.from(base64img, "base64");
-  fs.writeFileSync(`${IMG_PATH}/${name}.png"`,buffer);
+  fs.writeFileSync(`${IMG_PATH}/${name}.png`,buffer);
 
-  /* const STR = 'data:image/octet-stream;base64';
-  const indx = imageBase64.indexOf(STR);
-  console.log(imageBase64.substring(indx,50));
- */
   res.send({success:true , message:"ok"});
   // res.status();
 }, (error, req, res, next) => {

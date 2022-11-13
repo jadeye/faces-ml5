@@ -27,7 +27,9 @@ let video;
 let canvas;
 let face;
 let expressions;
-const cameraSwitch = document.getElementById("switchRoundedDefault");
+let cameraSwitchValue;
+// const cameraSwitch = document.getElementById("switchRoundedDefault");
+const cameraSwitch = document.querySelector("input[name=cameraSwitch]");;
 const tableBody = document.getElementById('content-table');
 const BASE_API = `http://localhost:${port}`
 
@@ -64,11 +66,26 @@ function setup() {
   sketchHolder.appendChild(document.querySelector("video"));
   faceapi = ml5.faceApi(video, faceOptions, faceReady);
 
+  cameraSwitch.checked = true;
 }
+/*
+* <!-- end of Setup -->
+*/
 
-cameraSwitch.addEventListener('click', (e) => {
-  console.log(e.checked.value);
+/*
+ * CheckBox toggle between face recognition and
+ * Snapshot of a new user
+*/
+cameraSwitch.addEventListener('change', function() {
+    if (this.checked) {
+      console.log(`${this.checked} Checkbox is checked..`);
+    } else {
+      console.log(`${this.checked} Checkbox is not checked..`);
+    }
+    cameraSwitchValue = this.checked;
 })
+
+
 async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open', 'Yoni_Closed']) {
   return await Promise.all(
     labels.map(async label => {
@@ -218,8 +235,8 @@ function initUploadNewFaceButton() {
     }
   })
 
-  form.addEventListener('formdata', (e) => {
-    console.log('formdata fired');
+  form.addEventListener("formdata", (e) => {
+    console.log("formdata fired");
     // Get the form data from the event object
     const data = e.formData;
     let json = {};
