@@ -17,4 +17,4 @@ const RecognziedPeople = new Schema({
 }, { timestamps: true });
 
 
-exports.FaceModel = mongoose.model('RecognziedPeople', RecognziedPeople);
+exports.RecognizedPeople = mongoose.model('RecognziedPeople', RecognziedPeople);

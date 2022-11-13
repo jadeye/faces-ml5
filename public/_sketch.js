@@ -8,7 +8,7 @@ const Expressions = {
   Surprised: "surprised",
 }
 
-const icosClassNames = {
+const iconsClassNames = {
   happy: "fas fa-smile",
   sad: "fa-solid fa-face-sad-tear",
   angry: "fa-solid fa-face-angry",
@@ -26,16 +26,21 @@ let video;
 let canvas;
 let face;
 let expressions;
+const tableBody = document.getElementById('content-table');
+const BASE_API = `http://localhost:${port}`
+
+const HARD_CODED_IMG = "https://www.simplilearn.com/ice9/free_resources_article_thumb/Advantages_and_Disadvantages_of_artificial_intelligence.jpg";
+let dbPeopleData;
 
 function setup() {
-
   loadFacesFromDB().then((res) => {
     console.log("faces:", res);
+    dbPeopleData = res;
   }).catch((erro) => {
     console.error(erro);
   })
   initUploadNewFaceButton();
-  
+
   canvas = createCanvas(640, 480);
   canvas.style('display', 'block');
   canvas.id("canvas");
@@ -55,8 +60,6 @@ function setup() {
   };
 
   sketchHolder.appendChild(document.querySelector("video"));
-
-
   faceapi = ml5.faceApi(video, faceOptions, faceReady);
 }
 
@@ -66,17 +69,13 @@ async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open'
       // fetch image data from urls and convert blob to HTMLImage element
       const imgUrl = `./photos/${label}.jpg`
       const img = await faceapi.model.fetchImage(imgUrl)
-
       // detect the face with the highest score in the image and compute it's landmarks and face descriptor
       const fullFaceDescription = await faceapi.model.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor()
-
       if (!fullFaceDescription) {
         throw new Error(`no faces detected for ${label}`)
       }
 
-      const faceDescriptors = [fullFaceDescription.descriptor]
-      /* console.log(fullFaceDescription.descriptor);
-      console.log(faceDescriptors); */
+      const faceDescriptors = [fullFaceDescription.descriptor];
 
       return new faceapi.model.LabeledFaceDescriptors(label, faceDescriptors)
     })
@@ -85,7 +84,7 @@ async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open'
 
 async function loadFacesFromDB() {
   return new Promise(async (resolve, reject) => {
-    const faces = await fetch(`http://localhost:${port}/getFaces`);
+    const faces = await fetch(`${BASE_API}/getFaces`);
     if (!faces && !faces.length) {
       reject({ message: "Can't find faces" });
     } else {
@@ -116,10 +115,19 @@ async function savePerson(video) {
 
 }
 
-function displayExpressions(expressions) {
-  const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
-  const baseEmoji = `<i class='${icosClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i>`
-  document.getElementsByClassName("expressions")[0].innerHTML = `${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
+
+function displayExpressions(expressionsArr) {
+  document.getElementsByClassName("expressions")[0].innerHTML = "";
+  expressionsArr.forEach(expression => {
+    const expressions = expression.expressions;
+    const name = expression.label;
+    if (name !== 'unknown') {
+      const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
+      const baseEmoji = `<div class='column'> <i class='${iconsClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i> </div>`
+
+      document.getElementsByClassName("expressions")[0].innerHTML += `${name} ${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
+    }
+  });
 
 }
 
@@ -193,36 +201,36 @@ function initUploadNewFaceButton() {
 
     const form = document.getElementById("userDetails");
 
-      form.addEventListener("submit", submitForm);
+    form.addEventListener("submit", submitForm);
 
-      function submitForm(e) {
-          e.preventDefault();
-          const userImg = document.getElementById("userImageCapture").src;
-          const formData = new FormData();
-          formData.append("name", nameValue);
-          formData.append("id", idValue);
-          formData.append("img", userImg)
-          // console.log(formData);
-          console.log(`Request Body: \n\r
+    function submitForm(e) {
+      e.preventDefault();
+      const userImg = document.getElementById("userImageCapture").src;
+      const formData = new FormData();
+      formData.append("name", nameValue);
+      formData.append("id", idValue);
+      formData.append("img", userImg)
+      // console.log(formData);
+      console.log(`Request Body: \n\r
           ================================================================\n\r
           ${FormData.getAll()}`);
-          
-          fetch("http://localhost:5000/user-data", {
-              method: 'POST',
-              body: formData,
-              headers: {
-                "Content-Type": "multipart/form-data"
-              }
-          })
-              .then((res) => console.log(res))
-              .catch((err) => ("Error occured", err));
-      }
+
+      fetch("http://localhost:5000/user-data", {
+        method: 'POST',
+        body: formData,
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      })
+        .then((res) => console.log(res))
+        .catch((err) => ("Error occured", err));
+    }
   })
 
   userName.addEventListener('focusout', (event) => {
     idValue = userId.value;
     nameValue = userName.value;
-    if((nameValue.length >= 2) && (idValue.length >= 8)){
+    if ((nameValue.length >= 2) && (idValue.length >= 8)) {
       captureImageBtn.disabled = false;
     } else {
       captureImageBtn.disabled = true;
@@ -231,13 +239,27 @@ function initUploadNewFaceButton() {
 
   console.log(captureImageBtn);
   captureImageBtn.addEventListener('click', async (e) => {
-    // if (face !== null && face) {
     e.preventDefault();
-    // counterId = timeCounter(Date.now(), timerHtml);
     await savePerson(video);
-    // }
   })
 }
+
+
+function addToTable({ name, img, date }) {
+  let table = document.getElementById("content-table");
+  let row = table.insertRow(1);
+  let new_name = row.insertCell(0);
+  let new_time = row.insertCell(1);
+  let new_image = row.insertCell(1);
+  const imgDt = document.createElement('img');
+  imgDt.style.width = '25px';
+  imgDt.style.height = '25px';
+  imgDt.src = img
+  new_name.appendChild(imgDt);
+  new_time.innerHTML = date;
+  new_image.innerHTML = name;
+}
+
 
 function faceReady() {
   getLabelFaceDescriptions().then((data) => {
@@ -247,7 +269,20 @@ function faceReady() {
   faceapi.detect(gotFaces);// Start detecting faces
 }
 
-function gotFaces(error, result) {
+async function sendPostRequest(route, json) {
+  const rawResponse = await fetch(`${BASE_API}${route}`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(json)
+  });
+
+  return await rawResponse.json();
+}
+
+async function gotFaces(error, result) {
   if (error) {
     console.log(error);
     return;
@@ -264,14 +299,25 @@ function gotFaces(error, result) {
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
 
+      const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: '322525999', name: detections[i]['label'], img: HARD_CODED_IMG });
+      console.log(detectedPersonResponse)
+      if (detectedPersonResponse['success']) {
+        addToTable({
+          name: detectedPersonResponse.payload.name,
+          img: detectedPersonResponse.payload.imagePath,
+          date: new Date()
+        });
+      }
+
     }
   }
 
-  clear();//Draw transparent background
-  drawBoxs(detections);//Draw detection box
-  drawLandmarks(detections);//// Draw all the face points
-  drawExpressions(detections, 20, 250, 14);//Draw face expression
-  faceapi.detect(gotFaces);// Call the function again at here
+
+  clear();//Draw transparent background;: 
+  drawBoxs(detections);//Draw detection box: 
+  drawLandmarks(detections);//// Draw all the face points: 全ての顔のポイントの描画
+  drawExpressions(detections, 20, 250, 14);//Draw face expression: 
+  faceapi.detect(gotFaces);// Call the function again at here: 
 }
 
 function drawBoxs(detections) {
@@ -303,79 +349,8 @@ function drawLandmarks(detections) {
 }
 
 function drawExpressions(detections, x, y, textYSpace) {
-  if (detections.length > 0) {//If at least 1 face is detected: もし1つ以上の顔が検知されていたら
-    let { neutral, happy, angry, sad, disgusted, surprised, fearful } = detections[0].expressions;
-    textFont('Helvetica Neue');
-    textSize(14);
-    noStroke();
-    fill(44, 169, 225);
-    // displayExpressions()
-    updateThrottleText({ neutral, happy, angry, sad, disgusted, surprised, fearful })
-
-    // text("neutral:       " + nf(neutral * 100, 2, 2) + "%", x, y);
-    // text("happiness: " + nf(happy * 100, 2, 2) + "%", x, y + textYSpace);
-    // text("anger:        " + nf(angry * 100, 2, 2) + "%", x, y + textYSpace * 2);
-    // text("sad:            " + nf(sad * 100, 2, 2) + "%", x, y + textYSpace * 3);
-    // text("disgusted: " + nf(disgusted * 100, 2, 2) + "%", x, y + textYSpace * 4);
-    // text("surprised:  " + nf(surprised * 100, 2, 2) + "%", x, y + textYSpace * 5);
-    // text("fear:           " + nf(fearful * 100, 2, 2) + "%", x, y + textYSpace * 6);
-  } else {//If no faces is detected: 顔が1つも検知されていなかったら
-    text("neutral: ", x, y);
-    text("happiness: ", x, y + textYSpace);
-    text("anger: ", x, y + textYSpace * 2);
-    text("sad: ", x, y + textYSpace * 3);
-    text("disgusted: ", x, y + textYSpace * 4);
-    text("surprised: ", x, y + textYSpace * 5);
-    text("fear: ", x, y + textYSpace * 6);
-  }
+  if (detections.length > 0) {   //If at least 1 face is detected
+    let expressionsArr = detections.map((detect) => { return { label: detect.label, expressions: detect.expressions } });
+    updateThrottleText(expressionsArr)
+  } else text('no face detected');    //If no faces is detected
 }
-
-
-
-function takesnap() {
-  image(video, 0, 0); //draw the image being captured on webcam onto the canvas at the position (0, 0) of the canvas
-}
-
-
-// YONI ADD ONS
-function add_to_table(index) {
-  let table = document.getElementById("content-table");
-  table.insertRow(1).id = index + 1;
-  let row = document.getElementById(index + 1)
-  let new_name = row.insertCell(0);
-  let new_time = row.insertCell(1);
-  let new_image = row.insertCell(1);
-  new_name.innerHTML = index + 1;
-  new_time.innerHTML = index;
-  new_image.innerHTML = index * 2;
-
-}
-
-for (let index = 0; index < 15; index++) {
-  add_to_table(index)
-}
-
-
-function add_class() {
-  let x = document.getElementById("content-table").rows.length - 1;
-  if (x % 2 == 0) {
-    for (let index = 0; index < x; index++) {
-      if (index % 2 != 0) {
-        let element = document.getElementById(index)
-        element.classList.add("active-row");
-        // console.log(element);
-      } // console.log("true")
-    }
-
-  }
-  else {
-    for (let index = 0; index < x; index++) {
-      if (index % 2 == 0 && index != 0) {
-        let element = document.getElementById(index)
-        element.classList.add("active-row");
-
-      }
-    }
-  }
-}
-add_class()
