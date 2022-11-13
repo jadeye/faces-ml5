@@ -11,7 +11,7 @@ const multer = require('multer');
 const bodyParser = require('body-parser');
 const path = require('path');
 const { RecognizedPeople } = require("./models/recognizedPeople.js");
-const detectedPeople = [];
+let authorizedPeople = [];
 
 //multer options
 const storage = multer.diskStorage({
@@ -35,8 +35,10 @@ const uploads = multer({
 app.use(express.static(__dirname + "/public"));
 
 mongoose.connect('mongodb://localhost/recognized_faces')
-  .then(() => {
+  .then(async () => {
     console.log('DB Connection eastablished');
+    authorizedPeople = await FaceModel.find(); // get all authorized people
+    // console.log(authorizedPeople)
   }).catch((err) => {
     console.error(err);
   });
@@ -55,7 +57,7 @@ app.use(
   })
 );
 
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
   res.render("index.html");
 });
 
@@ -68,19 +70,25 @@ app.post('/user-data', (req, res) => {
 }, (error, req, res, next) => {
   res.status(400).send({ error: error.message })
 })
+// TODO: to check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
 
-app.post('/detectPeople',  async (req, res) => {
+app.post('/detectPeople', async (req, res) => {
   const { name, id } = req.body;
-  // find person by id
-  // const person = detectedPeople.find((person) => person.id === id);
-  // if (!person) {
-  //   detectedPeople.push(person);
-  // } else if(person){
-  //   detectedPeople.
-  // }
-  
-  const result = await RecognizedPeople.create({id , name , imagePath:"hardcoded path"});
-  res.status(200).json(result);
+  console.log({ name, id })
+  const authPerson = authorizedPeople.find((person) => person.id === id); // get the authorized person
+
+
+  if (authPerson) {
+    authorizedPeople = authorizedPeople.filter((person) => person.id !== authPerson.id); // remove the auth person from the array
+    const result = await RecognizedPeople.create({ id, name, imagePath: "hardcoded path" });
+    setTimeout(() => {
+      authorizedPeople.push(authPerson);
+    }, 15 * 1000)
+
+    res.status(200).json({ success: true, payload: result });
+  } else if (!authPerson) {
+    res.status(400).send({ success: false, message: "Unrecognized person" });
+  }
 });
 
 

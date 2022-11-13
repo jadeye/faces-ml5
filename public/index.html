@@ -24,19 +24,20 @@
 </style>
 <script>
   // Get a reference to our file input
-  const fileInput = document.getElementById('imageUpload');
+  // const fileInput = document.getElementById('imageUpload');
 
-  // Create a new File object
-  const myFile = new File([''], 'myFile.txt', {
-      type: 'text/plain',
-      lastModified: new Date(),
-  });
+  // // Create a new File object
+  // const myFile = new File([''], 'myFile.txt', {
+  //     type: 'text/plain',
+  //     lastModified: new Date(),
+  // });
 
-  // Now let's create a DataTransfer to get a FileList
-  const dataTransfer = new DataTransfer();
-  dataTransfer.items.add(myFile);
-  fileInput.files = dataTransfer.files;
+  // // Now let's create a DataTransfer to get a FileList
+  // const dataTransfer = new DataTransfer();
+  // dataTransfer.items.add(myFile);
+  // fileInput.files = dataTransfer.files;
 </script>
+
 <body>
 
   <div>
@@ -48,12 +49,10 @@
       <div class="column">
         <h1 class="title is-4">List of Expressions:</h1>
         <div class="expressions columns is-multiline">
-
         </div>
       </div>
     </div>
-
-    <div class="columns">
+    <div class="columns mx-4 is-multiline">
       <div class="column">
         <div class="field">
           <input id="switchRoundedDefault" type="checkbox" name="switchRoundedDefault" class="switch is-rounded"
@@ -65,7 +64,7 @@
           Add New Person Form
         </h1>
 
-        <form class="is-centered" id="userDetails" enctype="multipart/form-data" >
+        <form class="is-centered" id="userDetails" enctype="multipart/form-data">
           <div class="field">
             <label class="label">ID</label>
             <div class="control">
@@ -85,9 +84,9 @@
               </span>
             </div>
           </div>
-          <img id="userImageCapture" scr=""/>
+          <img id="userImageCapture" scr="" />
           <div class="control">
-            <input class="input" id="imageUpload" type="hidden" name="uploaded_file" >
+            <input class="input" id="imageUpload" type="hidden" name="uploaded_file">
           </div>
           <div class="field is-grouped">
             <div class="control">

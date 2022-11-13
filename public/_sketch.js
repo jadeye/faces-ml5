@@ -26,16 +26,22 @@ let video;
 let canvas;
 let face;
 let expressions;
+const tableBody = document.getElementById('content-table');
+const BASE_API = `http://localhost:${port}`
+
+const HARD_CODED_IMG = "https://www.simplilearn.com/ice9/free_resources_article_thumb/Advantages_and_Disadvantages_of_artificial_intelligence.jpg";
+let dbPeopleData;
 
 function setup() {
 
   loadFacesFromDB().then((res) => {
     console.log("faces:", res);
+    dbPeopleData = res;
   }).catch((erro) => {
     console.error(erro);
   })
   initUploadNewFaceButton();
-  
+
   canvas = createCanvas(640, 480);
   canvas.style('display', 'block');
   canvas.id("canvas");
@@ -85,7 +91,7 @@ async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open'
 
 async function loadFacesFromDB() {
   return new Promise(async (resolve, reject) => {
-    const faces = await fetch(`http://localhost:${port}/getFaces`);
+    const faces = await fetch(`${BASE_API}/getFaces`);
     if (!faces && !faces.length) {
       reject({ message: "Can't find faces" });
     } else {
@@ -193,36 +199,36 @@ function initUploadNewFaceButton() {
 
     const form = document.getElementById("userDetails");
 
-      form.addEventListener("submit", submitForm);
+    form.addEventListener("submit", submitForm);
 
-      function submitForm(e) {
-          e.preventDefault();
-          const userImg = document.getElementById("userImageCapture").src;
-          const formData = new FormData();
-          formData.append("name", nameValue);
-          formData.append("id", idValue);
-          formData.append("img", userImg)
-          // console.log(formData);
-          console.log(`Request Body: \n\r
+    function submitForm(e) {
+      e.preventDefault();
+      const userImg = document.getElementById("userImageCapture").src;
+      const formData = new FormData();
+      formData.append("name", nameValue);
+      formData.append("id", idValue);
+      formData.append("img", userImg)
+      // console.log(formData);
+      console.log(`Request Body: \n\r
           ================================================================\n\r
           ${FormData.length}`);
-          
-          fetch("http://localhost:5000/user-data", {
-              method: 'POST',
-              body: formData,
-              headers: {
-                "Content-Type": "multipart/form-data"
-              }
-          })
-              .then((res) => console.log(res))
-              .catch((err) => ("Error occured", err));
-      }
+
+      fetch("http://localhost:5000/user-data", {
+        method: 'POST',
+        body: formData,
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      })
+        .then((res) => console.log(res))
+        .catch((err) => ("Error occured", err));
+    }
   })
 
   userName.addEventListener('focusout', (event) => {
     idValue = userId.value;
     nameValue = userName.value;
-    if((nameValue.length >= 2) && (idValue.length >= 8)){
+    if ((nameValue.length >= 2) && (idValue.length >= 8)) {
       captureImageBtn.disabled = false;
     } else {
       captureImageBtn.disabled = true;
@@ -247,7 +253,20 @@ function faceReady() {
   faceapi.detect(gotFaces);// Start detecting faces
 }
 
-function gotFaces(error, result) {
+async function sendPostRequest(route, json) {
+  const rawResponse = await fetch(`${BASE_API}${route}`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(json)
+  });
+
+  return await rawResponse.json();
+}
+
+async function gotFaces(error, result) {
   if (error) {
     console.log(error);
     return;
@@ -263,6 +282,16 @@ function gotFaces(error, result) {
 
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
+
+      const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: '322525999', name: detections[i]['label'], img: HARD_CODED_IMG });
+      console.log(detectedPersonResponse)
+      if (detectedPersonResponse['success']) {
+        addToTable({
+          name: detectedPersonResponse.payload.name,
+          img: detectedPersonResponse.payload.imagePath,
+          date: new Date()
+        });
+      }
 
     }
   }
@@ -329,53 +358,3 @@ function drawExpressions(detections, x, y, textYSpace) {
     text("fear: ", x, y + textYSpace * 6);
   }
 }
-
-
-
-function takesnap() {
-  image(video, 0, 0); //draw the image being captured on webcam onto the canvas at the position (0, 0) of the canvas
-}
-
-
-// YONI ADD ONS
-function add_to_table(index) {
-  let table = document.getElementById("content-table");
-  table.insertRow(1).id = index + 1;
-  let row = document.getElementById(index + 1)
-  let new_name = row.insertCell(0);
-  let new_time = row.insertCell(1);
-  let new_image = row.insertCell(1);
-  new_name.innerHTML = index + 1;
-  new_time.innerHTML = index;
-  new_image.innerHTML = index * 2;
-
-}
-
-for (let index = 0; index < 15; index++) {
-  add_to_table(index)
-}
-
-
-function add_class() {
-  let x = document.getElementById("content-table").rows.length - 1;
-  if (x % 2 == 0) {
-    for (let index = 0; index < x; index++) {
-      if (index % 2 != 0) {
-        let element = document.getElementById(index)
-        element.classList.add("active-row");
-        // console.log(element);
-      } // console.log("true")
-    }
-
-  }
-  else {
-    for (let index = 0; index < x; index++) {
-      if (index % 2 == 0 && index != 0) {
-        let element = document.getElementById(index)
-        element.classList.add("active-row");
-
-      }
-    }
-  }
-}
-add_class()
