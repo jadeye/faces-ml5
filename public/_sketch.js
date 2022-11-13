@@ -358,3 +358,19 @@ function drawExpressions(detections, x, y, textYSpace) {
     text("fear: ", x, y + textYSpace * 6);
   }
 }
+
+
+function addToTable({ name, img, date }) {
+  let table = document.getElementById("content-table");
+  let row = table.insertRow(1);
+  let new_name = row.insertCell(0);
+  let new_time = row.insertCell(1);
+  let new_image = row.insertCell(1);
+  const imgDt = document.createElement('img');
+  imgDt.style.width = '25px';
+  imgDt.style.height = '25px';
+  imgDt.src = img
+  new_name.appendChild(imgDt);
+  new_time.innerHTML = date;
+  new_image.innerHTML = name;
+}
