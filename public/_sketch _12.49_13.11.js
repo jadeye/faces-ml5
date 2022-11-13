@@ -48,6 +48,7 @@ function setup() {
   canvas.id("canvas");
 
   const sketchHolder = document.getElementsByClassName("sketch-holder")[0];
+
   sketchHolder.appendChild(document.querySelector("canvas"));
 
   video = createCapture(VIDEO);// Creat the video
@@ -61,6 +62,8 @@ function setup() {
   };
 
   sketchHolder.appendChild(document.querySelector("video"));
+
+
   faceapi = ml5.faceApi(video, faceOptions, faceReady);
 }
 
@@ -198,32 +201,68 @@ function initUploadNewFaceButton() {
     let userImageCapture = document.getElementById("userImageCapture");
     saveFrames(`${nameValue}`, 'png', 1, 25, data => {
       userImageCapture.src = `${data[0]["imageData"]}`;
+      // console.log(data);
       console.log(data[0]["imageData"]);
     });
     
+    // const form = document.getElementById("userDetails");
+
     form.addEventListener("submit", submitForm);
 
     function submitForm(e) {
       e.preventDefault();
       const imgInput = document.getElementById("imageUpload");
-      // console.log(userImageCapture.src);
+      console.log(userImageCapture.src);
       imgInput.value = userImageCapture.src;
-      // console.log(imgInput.value);
+      console.log(imgInput.value);
+      // const userImg = document.getElementById("userImageCapture").src;
       const formData = new FormData(form);
+      
+      /* formData.append("name", nameValue);
+      formData.append("id", idValue);
+      formData.append("img", userImg) */
+      // console.log(formData);
+/* 
+      fetch("http://localhost:5000/user-data", {
+        method: 'POST',
+        body: formData,
+      })
+        .then((res) => console.log(res))
+        .catch((err) => ("Error occured", err)); */
     }
   })
 
   form.addEventListener('formdata', (e) => {
     console.log('formdata fired');
+  
     // Get the form data from the event object
     const data = e.formData;
     let json = {};
+    console.log(data.values());
+    console.log(data.keys());
 
     for (const key of data.keys()) {
+      // console.log(key);
       json[key] = data.get(key);
     }
+  
+    // submit the data via XHR
+    // const request = new XMLHttpRequest();
+    // request.headers({
+    //   "Content-Length": e.formData.getLengthSync()
+    // })
+    // request.open("POST", "/user-data");
+    // request.send(data);
+    // console.log(json);
     sendPostRequest("/user-data", json).then((res)=> console.log(res))
-    .catch((err)=> console.error(err));
+    .catch((err)=> console.error("err"));
+
+
+/*       fetch("http://localhost:5000/user-data", {
+      method: 'POST',
+      body: formData,
+    }) */
+
   });
 
   userName.addEventListener('focusout', (event) => {
@@ -236,6 +275,7 @@ function initUploadNewFaceButton() {
     }
   });
 
+  console.log(captureImageBtn);
   captureImageBtn.addEventListener('click', async (e) => {
     // if (face !== null && face) {
     e.preventDefault();

@@ -12,6 +12,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const { RecognizedPeople } = require("./models/recognizedPeople.js");
 let authorizedPeople = [];
+const fs = require('fs');
 
 //multer options
 const storage = multer.diskStorage({
@@ -19,21 +20,14 @@ const storage = multer.diskStorage({
     cb(null, path.join(__dirname, 'images'))
   },
   filename: (req, file, cb) => {
-    console.log(`saveReq: ${file.filename}`)
+    // console.log(`saveReq: ${file.filename}`)
     cb(null, file.originalname);
   }
 })
 
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-
 const uploads = multer({
   storage: storage
 });
-
-app.use(express.static(__dirname + "/public"));
-
 mongoose.connect('mongodb://localhost/recognized_faces')
   .then(async () => {
     console.log('DB Connection eastablished');
@@ -43,29 +37,43 @@ mongoose.connect('mongodb://localhost/recognized_faces')
     console.error(err);
   });
 
+
+
+app.use(express.static(__dirname + "/public"));
+// app.use(express.json({limit: '50mb'}));
+app.use(bodyParser.json({limit: '50mb'}));
 app.use(cors());
-app.use(helmet());
+app.use(helmet());    
+/* 
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+ */
+app.use(bodyParser.urlencoded({
+  limit: "50mb", 
+  extended: true, 
+  parameterLimit: 50000
+}));
 
 // used to log requests
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-app.use(
-  express.json({
-    extended: false,
-  })
-);
-
 app.get("/", async (req, res) => {
   res.render("index.html");
 });
 
 app.post('/user-data', (req, res) => {
-  console.log(`Request Body: \n\r
-  ================================================================\n\r
-  {req.body["FormData"]}`);
-  res.send(JSON.stringify(req.FormData));
+  console.log(req.body);
+  const imageBase64 = req.body.uploaded_file;
+  const STR = 'data:image/octet-stream;base64';
+  const indx = imageBase64.indexOf(STR);
+  console.log(imageBase64.substring(indx,50));
+  const buffer = Buffer.from(imageBase64.substring(indx), "base64");
+  fs.writeFileSync("myimage.png",buffer);
+
+  res.send({success:true , message:"ok"});
   // res.status();
 }, (error, req, res, next) => {
   res.status(400).send({ error: error.message })
@@ -74,7 +82,7 @@ app.post('/user-data', (req, res) => {
 
 app.post('/detectPeople', async (req, res) => {
   const { name, id } = req.body;
-  console.log({ name, id })
+  // console.log({ name, id })
   const authPerson = authorizedPeople.find((person) => person.id === id); // get the authorized person
 
 
