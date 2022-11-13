@@ -11,6 +11,8 @@ const multer = require('multer');
 const bodyParser = require('body-parser');
 const path = require('path');
 const { RecognizedPeople } = require("./models/recognizedPeople.js");
+const { savePersonFace } = require("./services/person.js");
+const { getAllFaces } = require("./services/profilePicture.js");
 let authorizedPeople = [];
 
 //multer options
@@ -67,6 +69,8 @@ app.post('/user-data', (req, res) => {
   {req.body["FormData"]}`);
   res.send(JSON.stringify(req.FormData));
   // res.status();
+  //todo: save path image to folder and create new person save his profile. 
+  // savePersonFace({id, name, imagePath});
 }, (error, req, res, next) => {
   res.status(400).send({ error: error.message })
 })
@@ -113,9 +117,12 @@ function uploadFiles(req, res) {
 }
  */
 app.get('/getFaces', async (req, res) => {
-  const faces = await FaceModel.find({});
-  if (!faces.length) return res.status(400).send({ success: false });
-  res.status(200).json(faces);
+  try {
+    const faces = await getAllFaces()
+    res.status(200).json({ success: true, faces });
+  } catch (error) {
+    res.status(400).send({ success: false , error });
+  }
 })
 
 
