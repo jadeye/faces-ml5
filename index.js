@@ -7,7 +7,6 @@ const mongoose = require("mongoose");
 const app = express();
 const PORT = process.env.PORT || 5000;
 const { FaceModel } = require("./models/face.js");
-const multer = require('multer');
 const bodyParser = require('body-parser');
 const path = require('path');
 const { RecognizedPeople } = require("./models/recognizedPeople.js");
@@ -15,8 +14,9 @@ const { savePersonFace } = require("./services/person.js");
 const { getAllFaces } = require("./services/profilePicture.js");
 let authorizedPeople = [];
 const fs = require('fs');
+const { getImagesNames } = require("./utils/imagesHelper.js");
 
-const IMG_PATH = `${__dirname}/images`;
+const IMG_PATH = `${__dirname}/public/photos`;
 
 mongoose.connect('mongodb://localhost/recognized_faces')
   .then(async () => {
@@ -28,6 +28,7 @@ mongoose.connect('mongodb://localhost/recognized_faces')
   });
 
 app.use(express.static(__dirname + "/public"));
+// app.use(express.static(path.join(__dirname , "../images"));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(cors());
 app.use(helmet());
@@ -58,10 +59,12 @@ app.post('/user-data', (req, res) => {
   const imagePath = `${IMG_PATH}/${name}.png`;
   fs.writeFileSync(imagePath, buffer);
 
-  savePersonFace({ id, name, imagePath });
-  res.send({ success: true, message: "ok" });
-}, (error, req, res, next) => {
-  res.status(400).send({ error: error.message })
+  try {
+    savePersonFace({ id, name, imagePath });
+    res.send({ success: true, message: "ok" });
+  } catch (err) {
+    res.status(400).send({ error: err })
+  }
 })
 
 // TODO: to check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
@@ -88,10 +91,17 @@ app.get('/getFaces', async (req, res) => {
     const faces = await getAllFaces()
     res.status(200).json({ success: true, faces });
   } catch (error) {
-    res.status(400).send({ success: false, message:error });
+    res.status(400).send({ success: false, message: error });
   }
 })
 
+app.get('/getPhotosNames', (req, res) => {
+  const images = getImagesNames();
+  console.log(images);
+
+  if (images.length) res.status(200).json(images);
+  else res.status(400).json({ success: false, message: "no images in directory" });
+})
 
 app.listen(PORT, () =>
   console.log("Server is running at http://127.0.0.1:" + PORT)

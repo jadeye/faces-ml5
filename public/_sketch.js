@@ -1,21 +1,21 @@
 const Expressions = {
-    Sad: "sad",
-    Angry: "angry",
-    Disgusted: "disgusted",
-    Fearful: "fearful",
-    Happy: "happy",
-    Neutral: "neutral",
-    Surprised: "surprised",
+  Sad: "sad",
+  Angry: "angry",
+  Disgusted: "disgusted",
+  Fearful: "fearful",
+  Happy: "happy",
+  Neutral: "neutral",
+  Surprised: "surprised",
 }
 
 const iconsClassNames = {
-    happy: "fas fa-smile",
-    sad: "fa-solid fa-face-sad-tear",
-    angry: "fa-solid fa-face-angry",
-    disgusted: "fa-solid fa-face-dizzy",
-    fearful: "fa-solid fa-face-frown-open",
-    neutral: "fa-solid fa-face-meh",
-    surprised: "fa-solid fa-face-surprise"
+  happy: "fas fa-smile",
+  sad: "fa-solid fa-face-sad-tear",
+  angry: "fa-solid fa-face-angry",
+  disgusted: "fa-solid fa-face-dizzy",
+  fearful: "fa-solid fa-face-frown-open",
+  neutral: "fa-solid fa-face-meh",
+  surprised: "fa-solid fa-face-surprise"
 }
 
 
@@ -68,13 +68,22 @@ function setup() {
 
 cameraSwitch.addEventListener('click', (e) => {
   console.log(e.checked.value);
-})
-async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open', 'Yoni_Closed']) {
+});
+
+
+async function getImagesNames() {
+  return await (await fetch(`${BASE_API}/getPhotosNames`)).json();
+}
+
+
+async function getLabelFaceDescriptions() {
+  const images = await getImagesNames();
+  // console.log(imagesObject);
   return await Promise.all(
-    labels.map(async label => {
+    images.map(async label => {
       // fetch image data from urls and convert blob to HTMLImage element
-      const imgUrl = `./photos/${label}.jpg`
-      const img = await faceapi.model.fetchImage(imgUrl)
+      const imgUrl = `./photos/${label}`
+      const img = await faceapi.model.fetchImage(imgUrl);
 
       // detect the face with the highest score in the image and compute it's landmarks and face descriptor
       const fullFaceDescription = await faceapi.model.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor()
@@ -86,8 +95,9 @@ async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open'
       const faceDescriptors = [fullFaceDescription.descriptor]
       /* console.log(fullFaceDescription.descriptor);
       console.log(faceDescriptors); */
-
-      return new faceapi.model.LabeledFaceDescriptors(label, faceDescriptors)
+      let formatIndex = label.indexOf('.');
+      let personName = label.slice(0, formatIndex);
+      return new faceapi.model.LabeledFaceDescriptors(personName, faceDescriptors)
     })
   )
 }
@@ -205,7 +215,7 @@ function initUploadNewFaceButton() {
       userImageCapture.src = `${data[0]["imageData"]}`;
       console.log(data[0]["imageData"]);
     });
-    
+
     form.addEventListener("submit", submitForm);
 
     function submitForm(e) {
@@ -227,8 +237,8 @@ function initUploadNewFaceButton() {
     for (const key of data.keys()) {
       json[key] = data.get(key);
     }
-    sendPostRequest("/user-data", json).then((res)=> console.log(res))
-    .catch((err)=> console.error(err));
+    sendPostRequest("/user-data", json).then((res) => console.log(res))
+      .catch((err) => console.error(err));
   });
 
   userName.addEventListener('focusout', (event) => {
@@ -340,7 +350,7 @@ function drawExpressions(detections, x, y, textYSpace) {
   if (detections.length > 0) {   //If at least 1 face is detected
     let expressionsArr = detections.map((detect) => { return { label: detect.label, expressions: detect.expressions } });
     updateThrottleText(expressionsArr)
-  } else text('no face detected');    //If no faces is detected
+  }
 }
 
 
