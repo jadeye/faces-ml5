@@ -12,16 +12,22 @@ const path = require('path');
 const { RecognizedPeople } = require("./models/recognizedPeople.js");
 let authorizedPeople = [];
 const fs = require('fs');
+const cp = require('child_process');
 
 const getBase64StringFromDataURL = (dataURL) =>
 dataURL.replace('data:', '').replace(/^.+,/, '');
 
-app.use(express.static(__dirname + "/public"));
 app.use(bodyParser.urlencoded({
   limit: "50mb", 
   extended: true, 
   parameterLimit: 50000
 }));
+app.use(bodyParser.json({
+  limit: "50mb",
+}));
+app.use(express.static(__dirname + "/public"));
+// app.use('/static', express.static(path.join(__dirname, 'public')))
+
 app.use(cors());
 app.use(helmet());    
 
@@ -57,6 +63,22 @@ app.post('/user-data', (req, res) => {
   res.status(400).send({ error: error.message })
 })
 
+app.post('/btn', (req, res) => {
+  // shell.exec('./path_to_your_file')
+  // cp.spawn('./assets/doorPulse.sh', [args], function(err, stdout, stderr) {
+    console.log(req.body);
+  cp.exec('./assets/doorPulse.sh', (error, stdout, stderr) => {
+    if (error) {
+        console.log(`error: ${error.message}`);
+        return;
+    }
+    if (stderr) {
+        console.log(`stderr: ${stderr}`);
+        return;
+    }
+    console.log(`stdout: ${stdout}`);
+});
+})
 app.post('/detectPeople', async (req, res) => {
   const { name, id } = req.body;
   // console.log({ name, id })
