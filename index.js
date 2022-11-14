@@ -87,7 +87,7 @@ app.get('/getFaces', async (req, res) => {
 
 app.get('/getPhotosNames', (req, res) => {
   const images = getImagesNames();
-
+  console.log(images)
   if (images.length) res.status(200).json(images);
   else res.status(400).json({ success: false, message: "no images in directory" });
 })

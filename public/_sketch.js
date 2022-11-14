@@ -308,7 +308,7 @@ async function gotFaces(error, result) {
     const maxDescriptorDistance = 0.6;
     const faceMatcher = new faceapi.model.FaceMatcher(faces, maxDescriptorDistance);
     const recognitionResults = detections.map(fd => faceMatcher.findBestMatch(fd.descriptor));
-
+    console.log(recognitionResults)
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
 
