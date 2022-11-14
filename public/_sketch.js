@@ -27,12 +27,20 @@ let video;
 let canvas;
 let face;
 let expressions;
-const cameraSwitch = document.getElementById("switchRoundedDefault");
+let cameraSwitchValue;
+// const cameraSwitch = document.getElementById("switchRoundedDefault");
+const cameraSwitch = document.querySelector("input[name=cameraSwitch]");;
 const tableBody = document.getElementById('content-table');
 const BASE_API = `http://localhost:${port}`
-
+const cancelFormBtn = document.getElementById('cancelFormBtn');
 const HARD_CODED_IMG = "https://www.simplilearn.com/ice9/free_resources_article_thumb/Advantages_and_Disadvantages_of_artificial_intelligence.jpg";
 let dbPeopleData;
+
+
+cancelFormBtn.addEventListener('click', function () {
+  document.getElementById('userImageCapture').src = '';
+})
+
 
 function setup() {
 
@@ -64,21 +72,47 @@ function setup() {
   sketchHolder.appendChild(document.querySelector("video"));
   faceapi = ml5.faceApi(video, faceOptions, faceReady);
 
+  cameraSwitch.checked = true;
 }
-
-cameraSwitch.addEventListener('click', (e) => {
-  console.log(e.checked.value);
-});
-
 
 async function getImagesNames() {
   return await (await fetch(`${BASE_API}/getPhotosNames`)).json();
 }
 
+/*
+* <!-- end of Setup -->
+*/
+// console.log(imagesObject);
+/*
+ * CheckBox toggle between face recognition and
+ * Snapshot of a new user
+*/
+cameraSwitch.addEventListener('change', function () {
+  if (this.checked) {
+    console.log(`${this.checked} Checkbox is checked..`);
+    document.getElementById('canvas').style.visibility = 'visible';
+    // document.getElementById('canvas').style.display = 'block';
+    document.getElementById('personId').disabled = true;
+    document.getElementById('personName').disabled = true;
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('cancelFormBtn').disabled = true;
 
-async function getLabelFaceDescriptions() {
+  } else {
+    console.log(`${this.checked} Checkbox is not checked..`);
+    document.getElementById('canvas').style.visibility = 'hidden';
+    // document.getElementById('canvas').style.display = 'none';
+    document.getElementById('personId').disabled = false;
+    document.getElementById('personName').disabled = false;
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('cancelFormBtn').disabled = false;
+  }
+  cameraSwitchValue = this.checked;
+});
+
+
+async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open', 'Yoni_Closed']) {
   const images = await getImagesNames();
-  // console.log(imagesObject);
+
   return await Promise.all(
     images.map(async label => {
       // fetch image data from urls and convert blob to HTMLImage element
@@ -111,28 +145,6 @@ async function loadFacesFromDB() {
       resolve(faces);
     }
   })
-}
-
-async function savePerson(video) {
-
-  // console.log(video);
-  // const rawResponse = await fetch(`http://localhost:${port}/uploadFace`, {
-  //   method: 'POST',
-  //   headers: {
-  //     'Accept': 'application/json',
-  //     'Content-Type': 'application/json'
-  //   },
-  //   body: JSON.stringify({
-  //     id: id,
-  //     name: name,
-  //     descriptors: face.descriptor,
-  //     parts: face.parts,
-  //   })
-  // });
-
-  // const content = await rawResponse.json();
-  // console.log(content);
-
 }
 
 function displayExpressions(expressionsArr) {
@@ -228,8 +240,8 @@ function initUploadNewFaceButton() {
     }
   })
 
-  form.addEventListener('formdata', (e) => {
-    console.log('formdata fired');
+  form.addEventListener("formdata", (e) => {
+    console.log("formdata fired");
     // Get the form data from the event object
     const data = e.formData;
     let json = {};
@@ -237,6 +249,8 @@ function initUploadNewFaceButton() {
     for (const key of data.keys()) {
       json[key] = data.get(key);
     }
+
+    console.log(json);
     sendPostRequest("/user-data", json).then((res) => console.log(res))
       .catch((err) => console.error(err));
   });

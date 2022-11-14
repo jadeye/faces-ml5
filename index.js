@@ -12,58 +12,48 @@ const path = require('path');
 const { RecognizedPeople } = require("./models/recognizedPeople.js");
 const { savePersonFace } = require("./services/person.js");
 const { getAllFaces } = require("./services/profilePicture.js");
-let authorizedPeople = [];
 const fs = require('fs');
 const { getImagesNames } = require("./utils/imagesHelper.js");
+let authorizedPeople = [];
 
-const IMG_PATH = `${__dirname}/public/photos`;
-
-mongoose.connect('mongodb://localhost/recognized_faces')
-  .then(async () => {
-    console.log('DB Connection eastablished');
-    authorizedPeople = await FaceModel.find(); // get all authorized people
-    // console.log(authorizedPeople)
-  }).catch((err) => {
-    console.error(err);
-  });
+const getBase64StringFromDataURL = (dataURL) =>
+  dataURL.replace('data:', '').replace(/^.+,/, '');
 
 app.use(express.static(__dirname + "/public"));
-// app.use(express.static(path.join(__dirname , "../images"));
 app.use(bodyParser.json({ limit: '50mb' }));
-app.use(cors());
-app.use(helmet());
-
 app.use(bodyParser.urlencoded({
   limit: "50mb",
   extended: true,
   parameterLimit: 50000
 }));
+app.use(cors());
+app.use(helmet());
+
+const IMG_PATH = "./public/photos";
 
 // used to log requests
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-const getBase64StringFromDataURL = (dataURL) =>
-  dataURL.replace('data:', '').replace(/^.+,/, '');
-
 app.get("/", async (req, res) => {
   res.render("index.html");
 });
 
 
-app.post('/user-data', (req, res) => {
+app.post('/user-data', async (req, res) => {
   const { name, id, uploaded_file } = req.body;
+
   const base64img = getBase64StringFromDataURL(uploaded_file);
   const buffer = Buffer.from(base64img, "base64");
   const imagePath = `${IMG_PATH}/${name}.png`;
   fs.writeFileSync(imagePath, buffer);
 
   try {
-    savePersonFace({ id, name, imagePath });
+    await savePersonFace({ id, name, imagePath });
     res.send({ success: true, message: "ok" });
   } catch (err) {
-    res.status(400).send({ error: err })
+    res.status(400).json({ error: err })
   }
 })
 
@@ -71,7 +61,6 @@ app.post('/user-data', (req, res) => {
 app.post('/detectPeople', async (req, res) => {
   const { name, id } = req.body;
   const authPerson = authorizedPeople.find((person) => person.id === id); // get the authorized person
-
   if (authPerson) {
     authorizedPeople = authorizedPeople.filter((person) => person.id !== authPerson.id); // remove the auth person from the array
     const result = await RecognizedPeople.create({ id, name, imagePath: "hardcoded path" });
@@ -81,6 +70,7 @@ app.post('/detectPeople', async (req, res) => {
 
     res.status(200).json({ success: true, payload: result });
   } else if (!authPerson) {
+    replace
     res.status(400).send({ success: false, message: "Unrecognized person" });
   }
 });
@@ -97,11 +87,33 @@ app.get('/getFaces', async (req, res) => {
 
 app.get('/getPhotosNames', (req, res) => {
   const images = getImagesNames();
-  console.log(images);
 
   if (images.length) res.status(200).json(images);
   else res.status(400).json({ success: false, message: "no images in directory" });
 })
+
+app.post('/uploadFace', async (req, res) => {
+  const { id } = req.body
+  // await writeToJsonFile(jsonObj, path.join(__dirname, '../data/people.json'));
+  const recognizedPerson = await FaceModel.findOne({ id });
+  if (!recognizedPerson) {
+    await FaceModel.create(req.body);
+    res.status(200).send({ sucess: true });
+  } else {
+    res.status(400).send({ success: false });
+  }
+})
+
+mongoose.connect('mongodb://localhost/recognized_faces')
+  .then(async () => {
+    console.log('DB Connection eastablished');
+    authorizedPeople = await FaceModel.find(); // get all authorized people
+    // console.log(authorizedPeople)
+  }).catch((err) => {
+    console.error(err);
+  });
+
+// TODO: to check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
 
 app.listen(PORT, () =>
   console.log("Server is running at http://127.0.0.1:" + PORT)
