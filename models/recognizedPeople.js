@@ -12,12 +12,12 @@ const RecognziedPeople = new Schema({
         type: String,
         required: true
     },
-    descriptors:{
+    descriptors: {
         type: Array,
         required: true
     },
     imagePath: {
-        type: ObjectId,
+        type: String,
         required: true
     },
 }, { timestamps: true });
