@@ -1,12 +1,11 @@
-const { FaceModel } = require("../models/face");
+const { FaceProfile } = require("../models/faceProfile");
 
 const getAllFaces = async () => {
-    const profiles = await FaceModel.find({});
+    const profiles = await FaceProfile.find({});
     if (!profiles.length) {
-        console.log('============== INSIDE ERROR ===============');
         throw new Error("No faces");
     }
-    return profiles;
+    return profles;
 }
 
 

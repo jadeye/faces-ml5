@@ -7,7 +7,7 @@ const savePersonFace = async ({ id, name, imagePath }) => {
     if (!profileImage) {
         const profile = await FaceProfile.create({ id, imagePath });
         return await FaceModel.create({ id, name, faceProfile: profile._id });
-    } else if (profileImage) {
+    } else {
         throw new Error("Person is already exists.");
     }
 }
