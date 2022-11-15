@@ -339,7 +339,7 @@ async function gotFaces(error, result) {
       if (person) {
         console.log(person);
         const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: person.id, name: person.name });
-        // console.log(detectedPersonResponse)
+        console.log(detectedPersonResponse)
         console.log(imagesOfPeople);
         if (detectedPersonResponse['success']) {
 
