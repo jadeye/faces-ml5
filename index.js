@@ -66,7 +66,7 @@ app.post('/user-data', (req, res) => {
 app.post('/btn', (req, res) => {
   // shell.exec('./path_to_your_file')
   // cp.spawn('./assets/doorPulse.sh', [args], function(err, stdout, stderr) {
-    console.log(req.body);
+  console.log(req.body);
   cp.exec('./assets/doorPulse.sh', (error, stdout, stderr) => {
     if (error) {
         console.log(`error: ${error.message}`);
@@ -78,6 +78,7 @@ app.post('/btn', (req, res) => {
     }
     console.log(`stdout: ${stdout}`);
 });
+res.send({status: 200, message: "ok"});
 })
 app.post('/detectPeople', async (req, res) => {
   const { name, id } = req.body;
