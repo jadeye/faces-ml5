@@ -11,6 +11,8 @@ const bodyParser = require('body-parser');
 const { savePersonFace } = require("./services/person.js");
 const { getAllFaces } = require("./services/profilePicture.js");
 const fs = require('fs');
+const cp = require('child_process');
+
 const { getImagesNames } = require("./utils/imagesHelper.js");
 const { saveRecognizedPerson } = require("./services/recognition.js");
 let authorizedPeople = [];
@@ -18,13 +20,16 @@ let authorizedPeople = [];
 const getBase64StringFromDataURL = (dataURL) =>
   dataURL.replace('data:', '').replace(/^.+,/, '');
 
-app.use(express.static(__dirname + "/public"));
-app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({
   limit: "50mb",
   extended: true,
   parameterLimit: 50000
 }));
+app.use(bodyParser.json({
+  limit: "50mb",
+}));
+app.use(express.static(__dirname + "/public"));
+
 app.use(cors());
 app.use(helmet());
 
@@ -56,7 +61,25 @@ app.post('/user-data', async (req, res) => {
   }
 })
 
+app.post('/btn', (req, res) => {
+  // shell.exec('./path_to_your_file')
+  // cp.spawn('./assets/doorPulse.sh', [args], function(err, stdout, stderr) {
+    console.log(req.body);
+  cp.exec('./assets/doorPulse.sh', (error, stdout, stderr) => {
+    if (error) {
+        console.log(`error: ${error.message}`);
+        return;
+    }
+    if (stderr) {
+        console.log(`stderr: ${stderr}`);
+        return;
+    }
+    console.log(`stdout: ${stdout}`);
+  });
+})
+
 // TODO: to check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
+
 app.post('/detectPeople', async (req, res) => {
   const { id } = req.body;
   const authPerson = authorizedPeople.find((person) => person.id === id); // get the authorized person

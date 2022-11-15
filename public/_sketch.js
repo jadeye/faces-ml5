@@ -293,6 +293,28 @@ function initUploadNewFaceButton() {
     await savePerson(video);
     // }
   })
+
+  const doorPulseForm = document.getElementById("doorPulseForm");
+
+  doorPulseForm.addEventListener("submit", submitDoorForm);
+
+  function submitDoorForm(e) {
+    e.preventDefault();
+    const doorFormData = new FormData(doorPulseForm);
+  }
+
+  doorPulseForm.addEventListener("formdata", (e) => {
+    console.log("doorPulseForm formdata fired");
+    // Get the form data from the event object
+    const data = e.formData;
+    let json = {};
+
+    for (const key of data.keys()) {
+      json[key] = data.get(key);
+    }
+    sendPostRequest("/btn", json).then((res)=> console.log(res))
+    .catch((err)=> console.error(err));
+  });
 }
 
 function faceReady() {
@@ -322,7 +344,7 @@ async function gotFaces(error, result) {
     return;
   }
 
-  detections = result;　//Now all the data in this detections
+  detections = result;//Now all the data in this detections
   face = detections.length ? detections[0] : null; //if there is at least one detection
 
   if (faces) {
@@ -332,6 +354,7 @@ async function gotFaces(error, result) {
     console.log(recognitionResults)
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
+
       let facesList = dbPeopleData.faces;
       console.log(facesList);
       const person = getPersonInfoByName(facesList, detections[i]['label'])
@@ -350,6 +373,20 @@ async function gotFaces(error, result) {
           });
         }
       }
+
+      let json = { openDoor: '1' };
+
+      sendPostRequest("/btn", { openDoor: '1' }).then((res)=> console.log(res))
+      .catch((err)=> console.error(err));
+      /* const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: '322525999', name: detections[i]['label'], img: HARD_CODED_IMG });
+      // console.log(detectedPersonResponse)
+      if (detectedPersonResponse['success']) {
+        addToTable({
+          name: detectedPersonResponse.payload.name,
+          img: detectedPersonResponse.payload.imagePath,
+          date: new Date()
+        });
+      } */
 
     }
   }
