@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const ObjectId = Schema.ObjectId;
+
 
 const RecognziedPeople = new Schema({
     id: {
@@ -10,8 +12,12 @@ const RecognziedPeople = new Schema({
         type: String,
         required: true
     },
+    descriptors:{
+        type: Array,
+        required: true
+    },
     imagePath: {
-        type: String,
+        type: ObjectId,
         required: true
     },
 }, { timestamps: true });

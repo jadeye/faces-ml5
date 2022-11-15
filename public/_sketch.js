@@ -32,9 +32,15 @@ let cameraSwitchValue;
 const cameraSwitch = document.querySelector("input[name=cameraSwitch]");;
 const tableBody = document.getElementById('content-table');
 const BASE_API = `http://localhost:${port}`
-
+const cancelFormBtn = document.getElementById('cancelFormBtn');
 const HARD_CODED_IMG = "https://www.simplilearn.com/ice9/free_resources_article_thumb/Advantages_and_Disadvantages_of_artificial_intelligence.jpg";
 let dbPeopleData;
+
+
+cancelFormBtn.addEventListener('click', function () {
+  document.getElementById('userImageCapture').src = '';
+})
+
 
 function setup() {
 
@@ -68,30 +74,50 @@ function setup() {
 
   cameraSwitch.checked = true;
 }
+
+async function getImagesNames() {
+  return await (await fetch(`${BASE_API}/getPhotosNames`)).json();
+}
+
 /*
 * <!-- end of Setup -->
 */
-
+// console.log(imagesObject);
 /*
  * CheckBox toggle between face recognition and
  * Snapshot of a new user
 */
-cameraSwitch.addEventListener('change', function() {
-    if (this.checked) {
-      console.log(`${this.checked} Checkbox is checked..`);
-    } else {
-      console.log(`${this.checked} Checkbox is not checked..`);
-    }
-    cameraSwitchValue = this.checked;
-})
+cameraSwitch.addEventListener('change', function () {
+  if (this.checked) {
+    console.log(`${this.checked} Checkbox is checked..`);
+    document.getElementById('canvas').style.visibility = 'visible';
+    // document.getElementById('canvas').style.display = 'block';
+    document.getElementById('personId').disabled = true;
+    document.getElementById('personName').disabled = true;
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('cancelFormBtn').disabled = true;
+
+  } else {
+    console.log(`${this.checked} Checkbox is not checked..`);
+    document.getElementById('canvas').style.visibility = 'hidden';
+    // document.getElementById('canvas').style.display = 'none';
+    document.getElementById('personId').disabled = false;
+    document.getElementById('personName').disabled = false;
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('cancelFormBtn').disabled = false;
+  }
+  cameraSwitchValue = this.checked;
+});
 
 
 async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open', 'Yoni_Closed']) {
+  const images = await getImagesNames();
+
   return await Promise.all(
-    labels.map(async label => {
+    images.map(async label => {
       // fetch image data from urls and convert blob to HTMLImage element
-      const imgUrl = `./photos/${label}.jpg`
-      const img = await faceapi.model.fetchImage(imgUrl)
+      const imgUrl = `./photos/${label}`
+      const img = await faceapi.model.fetchImage(imgUrl);
 
       // detect the face with the highest score in the image and compute it's landmarks and face descriptor
       const fullFaceDescription = await faceapi.model.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor()
@@ -103,8 +129,9 @@ async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open'
       const faceDescriptors = [fullFaceDescription.descriptor]
       /* console.log(fullFaceDescription.descriptor);
       console.log(faceDescriptors); */
-
-      return new faceapi.model.LabeledFaceDescriptors(label, faceDescriptors)
+      let formatIndex = label.indexOf('.');
+      let personName = label.slice(0, formatIndex);
+      return new faceapi.model.LabeledFaceDescriptors(personName, faceDescriptors)
     })
   )
 }
@@ -118,28 +145,6 @@ async function loadFacesFromDB() {
       resolve(faces);
     }
   })
-}
-
-async function savePerson(video) {
-
-  // console.log(video);
-  // const rawResponse = await fetch(`http://localhost:${port}/uploadFace`, {
-  //   method: 'POST',
-  //   headers: {
-  //     'Accept': 'application/json',
-  //     'Content-Type': 'application/json'
-  //   },
-  //   body: JSON.stringify({
-  //     id: id,
-  //     name: name,
-  //     descriptors: face.descriptor,
-  //     parts: face.parts,
-  //   })
-  // });
-
-  // const content = await rawResponse.json();
-  // console.log(content);
-
 }
 
 function displayExpressions(expressionsArr) {
@@ -222,7 +227,7 @@ function initUploadNewFaceButton() {
       userImageCapture.src = `${data[0]["imageData"]}`;
       console.log(data[0]["imageData"]);
     });
-    
+
     form.addEventListener("submit", submitForm);
 
     function submitForm(e) {
@@ -244,8 +249,10 @@ function initUploadNewFaceButton() {
     for (const key of data.keys()) {
       json[key] = data.get(key);
     }
-    sendPostRequest("/user-data", json).then((res)=> console.log(res))
-    .catch((err)=> console.error(err));
+
+    console.log(json);
+    sendPostRequest("/user-data", json).then((res) => console.log(res))
+      .catch((err) => console.error(err));
   });
 
   userName.addEventListener('focusout', (event) => {
@@ -383,7 +390,7 @@ function drawExpressions(detections, x, y, textYSpace) {
   if (detections.length > 0) {   //If at least 1 face is detected
     let expressionsArr = detections.map((detect) => { return { label: detect.label, expressions: detect.expressions } });
     updateThrottleText(expressionsArr)
-  } else text('no face detected');    //If no faces is detected
+  }
 }
 
 

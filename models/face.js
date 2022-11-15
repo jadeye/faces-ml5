@@ -15,6 +15,10 @@ const FaceSchema = new Schema({
         type: Array,
         required: true
     },
+    faceProfile:{
+        type: ObjectId,
+        required: true
+    }
 }, { timestamps: true });
 
 
