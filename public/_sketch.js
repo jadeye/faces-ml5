@@ -333,6 +333,24 @@ async function gotFaces(error, result) {
 
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
+      let facesList = dbPeopleData.faces;
+      console.log(facesList);
+      const person = getPersonInfoByName(facesList, detections[i]['label'])
+      console.log(person)
+      if (person) {
+        console.log(person);
+        const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: person.id, name: person.name });
+        console.log(detectedPersonResponse)
+        console.log(imagesOfPeople);
+        if (detectedPersonResponse['success']) {
+
+          addToTable({
+            name: detectedPersonResponse.payload.name,
+            img: imagesOfPeople[person.id],
+            date: new Date()
+          });
+        }
+      }
 
       let json = { openDoor: '1' };
 
@@ -347,7 +365,6 @@ async function gotFaces(error, result) {
           date: new Date()
         });
       } */
-
     }
   }
 
