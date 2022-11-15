@@ -33,6 +33,7 @@ const cameraSwitch = document.querySelector("input[name=cameraSwitch]");;
 const tableBody = document.getElementById('content-table');
 const BASE_API = `http://localhost:${port}`
 const cancelFormBtn = document.getElementById('cancelFormBtn');
+const HARD_CODED_IMG = "https://www.simplilearn.com/ice9/free_resources_article_thumb/Advantages_and_Disadvantages_of_artificial_intelligence.jpg";
 let dbPeopleData;
 
 
@@ -42,10 +43,10 @@ cancelFormBtn.addEventListener('click', function () {
 
 
 function setup() {
-  loadFacesFromDB().then(async (res) => {
+
+  loadFacesFromDB().then((res) => {
     // console.log("faces:", res);
-    dbPeopleData = await (res.json());
-    console.log(dbPeopleData);
+    dbPeopleData = res;
   }).catch((erro) => {
     console.error(erro);
   })
@@ -74,8 +75,8 @@ function setup() {
   cameraSwitch.checked = true;
 }
 
-async function getImageNames() {
-  return await fetch(`${BASE_API}/getPhotosNames`);
+async function getImagesNames() {
+  return await (await fetch(`${BASE_API}/getPhotosNames`)).json();
 }
 
 /*
@@ -108,19 +109,16 @@ cameraSwitch.addEventListener('change', function () {
   cameraSwitchValue = this.checked;
 });
 
-const imagesOfPeople = {};
-async function getLabelFaceDescriptions() {
-  // const images = await getImageNames();
-  let images = (await getImageNames());
-  let promiseResult = await images;
-  const photos = await promiseResult.json();
 
+async function getLabelFaceDescriptions(labels = ['Matan', 'Yehuda', 'Yoni_Open', 'Yoni_Closed']) {
+  const images = await getImagesNames();
 
   return await Promise.all(
-    photos.map(async label => {
+    images.map(async label => {
       // fetch image data from urls and convert blob to HTMLImage element
-      const imgUrl = `./photos/${label}`;
+      const imgUrl = `./photos/${label}`
       const img = await faceapi.model.fetchImage(imgUrl);
+
       // detect the face with the highest score in the image and compute it's landmarks and face descriptor
       const fullFaceDescription = await faceapi.model.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor()
 
@@ -129,14 +127,11 @@ async function getLabelFaceDescriptions() {
       }
 
       const faceDescriptors = [fullFaceDescription.descriptor]
-
+      /* console.log(fullFaceDescription.descriptor);
+      console.log(faceDescriptors); */
       let formatIndex = label.indexOf('.');
       let personName = label.slice(0, formatIndex);
-      let name = extractNameWithoutID(personName);
-      const personId = extractID(personName);
-      imagesOfPeople[personId] = img;
-
-      return new faceapi.model.LabeledFaceDescriptors(name, faceDescriptors)
+      return new faceapi.model.LabeledFaceDescriptors(personName, faceDescriptors)
     })
   )
 }
@@ -150,22 +145,6 @@ async function loadFacesFromDB() {
       resolve(faces);
     }
   })
-}
-
-function extractNameWithoutID(name) {
-  const idIndex = name.indexOf('-');
-  return name.slice(0, idIndex);
-}
-
-function extractID(name) {
-  const idIndex = name.indexOf('-');
-  return name.slice(idIndex + 1);
-}
-
-function getPersonInfoByName(facesList, name) {
-
-  person = facesList.find((face) => face.name === name);
-  return person;
 }
 
 function displayExpressions(expressionsArr) {
@@ -348,31 +327,12 @@ async function gotFaces(error, result) {
   face = detections.length ? detections[0] : null; //if there is at least one detection
 
   if (faces) {
-    const maxDescriptorDistance = 0.4; // 0.6 is the current maximum distance 15.11
+    const maxDescriptorDistance = 0.6;
     const faceMatcher = new faceapi.model.FaceMatcher(faces, maxDescriptorDistance);
     const recognitionResults = detections.map(fd => faceMatcher.findBestMatch(fd.descriptor));
-    console.log(recognitionResults)
+
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
-
-      let facesList = dbPeopleData.faces;
-      console.log(facesList);
-      const person = getPersonInfoByName(facesList, detections[i]['label'])
-      console.log(person)
-      if (person) {
-        console.log(person);
-        const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: person.id, name: person.name });
-        // console.log(detectedPersonResponse)
-        console.log(imagesOfPeople);
-        if (detectedPersonResponse['success']) {
-
-          addToTable({
-            name: detectedPersonResponse.payload.name,
-            img: imagesOfPeople[person.id],
-            date: new Date()
-          });
-        }
-      }
 
       let json = { openDoor: '1' };
 
@@ -441,11 +401,10 @@ function addToTable({ name, img, date }) {
   let new_name = row.insertCell(0);
   let new_time = row.insertCell(1);
   let new_image = row.insertCell(1);
-  console.log(typeof img);
   const imgDt = document.createElement('img');
   imgDt.style.width = '25px';
   imgDt.style.height = '25px';
-  imgDt.src = img.src;
+  imgDt.src = img
   new_name.appendChild(imgDt);
   new_time.innerHTML = date;
   new_image.innerHTML = name;
