@@ -45,9 +45,9 @@ function setup() {
   loadFacesFromDB().then(async (res) => {
     // console.log("faces:", res);
     dbPeopleData = await (res.json());
-    console.log(dbPeopleData);
+    // console.log(dbPeopleData);
   }).catch((erro) => {
-    console.error(erro);
+    // console.error(erro);
   })
   initUploadNewFaceButton();
 
@@ -88,7 +88,7 @@ async function getImageNames() {
 */
 cameraSwitch.addEventListener('change', function () {
   if (this.checked) {
-    console.log(`${this.checked} Checkbox is checked..`);
+    // console.log(`${this.checked} Checkbox is checked..`);
     document.getElementById('canvas').style.visibility = 'visible';
     // document.getElementById('canvas').style.display = 'block';
     document.getElementById('personId').disabled = true;
@@ -97,7 +97,7 @@ cameraSwitch.addEventListener('change', function () {
     document.getElementById('cancelFormBtn').disabled = true;
 
   } else {
-    console.log(`${this.checked} Checkbox is not checked..`);
+    // console.log(`${this.checked} Checkbox is not checked..`);
     document.getElementById('canvas').style.visibility = 'hidden';
     // document.getElementById('canvas').style.display = 'none';
     document.getElementById('personId').disabled = false;
@@ -246,7 +246,7 @@ function initUploadNewFaceButton() {
     let userImageCapture = document.getElementById("userImageCapture");
     saveFrames(`${nameValue}`, 'png', 1, 25, data => {
       userImageCapture.src = `${data[0]["imageData"]}`;
-      console.log(data[0]["imageData"]);
+      // console.log(data[0]["imageData"]);
     });
 
     form.addEventListener("submit", submitForm);
@@ -262,7 +262,7 @@ function initUploadNewFaceButton() {
   })
 
   form.addEventListener("formdata", (e) => {
-    console.log("formdata fired");
+    // console.log("formdata fired");
     // Get the form data from the event object
     const data = e.formData;
     let json = {};
@@ -271,7 +271,7 @@ function initUploadNewFaceButton() {
       json[key] = data.get(key);
     }
 
-    console.log(json);
+    // console.log(json);
     sendPostRequest("/user-data", json).then((res) => console.log(res))
       .catch((err) => console.error(err));
   });
@@ -286,19 +286,33 @@ function initUploadNewFaceButton() {
     }
   });
 
-  captureImageBtn.addEventListener('click', async (e) => {
-    // if (face !== null && face) {
+  const doorPulseForm = document.getElementById("doorPulseForm");
+
+  doorPulseForm.addEventListener("submit", submitDoorForm);
+
+  function submitDoorForm(e) {
     e.preventDefault();
-    // counterId = timeCounter(Date.now(), timerHtml);
-    await savePerson(video);
-    // }
-  })
+    const doorFormData = new FormData(doorPulseForm);
+  }
+
+  doorPulseForm.addEventListener("formdata", (e) => {
+    // console.log("doorPulseForm formdata fired");
+    // Get the form data from the event object
+    const data = e.formData;
+    let json = {};
+
+    for (const key of data.keys()) {
+      json[key] = data.get(key);
+    }
+    sendPostRequest("/btn", json).then((res)=> console.log(res))
+    .catch((err)=> console.error(err));
+  });
 }
 
 function faceReady() {
   getLabelFaceDescriptions().then((data) => {
     faces = data;
-    console.log(faces)
+    // console.log(faces)
   })
   faceapi.detect(gotFaces);// Start detecting faces
 }
@@ -329,20 +343,24 @@ async function gotFaces(error, result) {
     const maxDescriptorDistance = 0.4; // 0.6 is the current maximum distance 15.11
     const faceMatcher = new faceapi.model.FaceMatcher(faces, maxDescriptorDistance);
     const recognitionResults = detections.map(fd => faceMatcher.findBestMatch(fd.descriptor));
-    console.log(recognitionResults)
+    // console.log(recognitionResults)
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
       let facesList = dbPeopleData.faces;
-      console.log(facesList);
+      // console.log(facesList);
       const person = getPersonInfoByName(facesList, detections[i]['label'])
-      console.log(person)
+      // console.log(person)
       if (person) {
-        console.log(person);
+        // console.log(person);
         const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: person.id, name: person.name });
-        console.log(detectedPersonResponse)
-        console.log(imagesOfPeople);
+        // console.log(detectedPersonResponse)
+        // console.log(imagesOfPeople);
         if (detectedPersonResponse['success']) {
 
+          let json = {doorPulse: "1"};
+          sendPostRequest("/btn", json).then((res)=> console.log(res))
+          .catch((err)=> console.error(err));
+          
           addToTable({
             name: detectedPersonResponse.payload.name,
             img: imagesOfPeople[person.id],
@@ -399,12 +417,13 @@ function drawExpressions(detections, x, y, textYSpace) {
 
 
 function addToTable({ name, img, date }) {
+  // console.log({ name, img, date })
   let table = document.getElementById("content-table");
   let row = table.insertRow(1);
   let new_name = row.insertCell(0);
   let new_time = row.insertCell(1);
   let new_image = row.insertCell(1);
-  console.log(typeof img);
+  // console.log(typeof img);
   const imgDt = document.createElement('img');
   imgDt.style.width = '25px';
   imgDt.style.height = '25px';

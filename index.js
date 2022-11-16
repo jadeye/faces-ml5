@@ -13,6 +13,7 @@ const { getAllFaces } = require("./services/profilePicture.js");
 const fs = require('fs');
 const { getImagesNames } = require("./utils/imagesHelper.js");
 const { saveRecognizedPerson } = require("./services/recognition.js");
+const cp = require('child_process');
 let authorizedPeople = [];
 
 const getBase64StringFromDataURL = (dataURL) =>
@@ -42,7 +43,6 @@ app.get("/", async (req, res) => {
 
 app.post('/user-data', async (req, res) => {
   const { name, id, uploaded_file } = req.body;
-
   const base64img = getBase64StringFromDataURL(uploaded_file);
   const buffer = Buffer.from(base64img, "base64");
   const imagePath = `${IMG_PATH}/${name}-${id}.png`;
@@ -59,6 +59,7 @@ app.post('/user-data', async (req, res) => {
 // TODO: to check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
 app.post('/detectPeople', async (req, res) => {
   const { id } = req.body;
+  // console.log(id);
   const authPerson = authorizedPeople.find((person) => person.id === id); // get the authorized person
 
   try {
@@ -106,6 +107,21 @@ app.post('/uploadFace', async (req, res) => {
   }
 })
 
+app.post('/btn', (req, res) => {
+  console.log(req.body);
+  cp.exec('./assets/doorPulse.sh', (error, stdout, stderr) => {
+    if (error) {
+        // console.log(`error: ${error.message}`);
+        return;
+    }
+    if (stderr) {
+        // console.log(`stderr: ${stderr}`);
+        return;
+    }
+    // console.log(`stdout: ${stdout}`);
+  });
+})
+
 mongoose.connect('mongodb://localhost/recognized_faces')
   .then(async () => {
     console.log('DB Connection eastablished');
@@ -115,7 +131,22 @@ mongoose.connect('mongodb://localhost/recognized_faces')
   });
 
 // TODO: to check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
+app.listen(PORT, (err) =>{
+  console.log("Server is running at http://127.0.0.1:" + PORT);
+  console.log(err);
+});
 
-app.listen(PORT, () =>
-  console.log("Server is running at http://127.0.0.1:" + PORT)
-);
+function initServer() {
+try {
+
+  app.listen(PORT, () =>
+    console.log("Server is running at http://127.0.0.1:" + PORT)
+  ).catch((err) => {console.log(err)});
+  // TODO: capture error listen EADDRINUSE: address already in use :::5000
+  // invode bash script to release port and re-run server
+  // sudo kill -9 `sudo lsof -t -i:5000`
+
+} catch {
+
+}
+}
