@@ -120,6 +120,7 @@ app.post('/btn', (req, res) => {
     }
     // console.log(`stdout: ${stdout}`);
   });
+  res.send({status: 200, message: "ok"});
 })
 
 mongoose.connect('mongodb://localhost/recognized_faces')
