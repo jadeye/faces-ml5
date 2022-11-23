@@ -26,7 +26,10 @@ app.use(bodyParser.urlencoded({
   extended: true,
   parameterLimit: 50000
 }));
-app.use(cors());
+app.use(cors({
+    origin:"*"
+  }
+));
 app.use(helmet());
 
 const IMG_PATH = "./public/photos";
@@ -50,6 +53,7 @@ app.post('/user-data', async (req, res) => {
 
   try {
     await savePersonFace({ id, name, imagePath });
+    authorizedPeople = await FaceModel.find(); // get all authorized people
     res.send({ success: true, message: "ok" });
   } catch (err) {
     res.status(400).json({ error: err })
@@ -64,6 +68,7 @@ app.post('/detectPeople', async (req, res) => {
 
   try {
     if (authPerson) {
+      // console.log(authPerson);
       authorizedPeople = authorizedPeople.filter((person) => person.id !== authPerson.id); // remove the auth person from the array
       const recognizedPerson = await saveRecognizedPerson(authPerson)
       setTimeout(() => {
@@ -108,7 +113,7 @@ app.post('/uploadFace', async (req, res) => {
 })
 
 app.post('/btn', (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   cp.exec('./assets/doorPulse.sh', (error, stdout, stderr) => {
     if (error) {
         // console.log(`error: ${error.message}`);

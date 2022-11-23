@@ -231,6 +231,7 @@ function initUploadNewFaceButton() {
 
   const userId = document.getElementById('personId');
   const userName = document.getElementById('personName');
+  let imageCaptured = false;
   let idValue;
   let nameValue;
   const form = document.getElementById("userDetails");
@@ -239,16 +240,12 @@ function initUploadNewFaceButton() {
 
   captureImageBtn.addEventListener("click", () => {
     const snapedImage = image(video, 0, 0);
-    // saveCanvas(`${nameValue}.png`);
-    /* saveFrames(`${nameValue}.png`, (data) => {
-      console.log(data)
-    }); */
+
     let userImageCapture = document.getElementById("userImageCapture");
     saveFrames(`${nameValue}`, 'png', 1, 25, data => {
       userImageCapture.src = `${data[0]["imageData"]}`;
-      // console.log(data[0]["imageData"]);
     });
-
+  }) // replaced paranthesis commented under submitForm func
     form.addEventListener("submit", submitForm);
 
     function submitForm(e) {
@@ -259,7 +256,7 @@ function initUploadNewFaceButton() {
       // console.log(imgInput.value);
       const formData = new FormData(form);
     }
-  })
+  // })
 
   form.addEventListener("formdata", (e) => {
     // console.log("formdata fired");
@@ -351,10 +348,8 @@ async function gotFaces(error, result) {
       const person = getPersonInfoByName(facesList, detections[i]['label'])
       // console.log(person)
       if (person) {
-        // console.log(person);
+        
         const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: person.id, name: person.name });
-        // console.log(detectedPersonResponse)
-        // console.log(imagesOfPeople);
         if (detectedPersonResponse['success']) {
 
           let json = {doorPulse: "1"};
