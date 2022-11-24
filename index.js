@@ -14,6 +14,7 @@ const fs = require('fs');
 const { getImagesNames } = require("./utils/imagesHelper.js");
 const { saveRecognizedPerson } = require("./services/recognition.js");
 const cp = require('child_process');
+const { appendDataToJson } = require("./utils/filesUtils.js");
 let authorizedPeople = [];
 
 const getBase64StringFromDataURL = (dataURL) =>
@@ -62,15 +63,17 @@ app.post('/user-data', async (req, res) => {
 
 // TODO: to check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
 app.post('/detectPeople', async (req, res) => {
-  const { id } = req.body;
+  const { id , name , recognizeData } = req.body; // recognizeitionInfo - all the relevant
   // console.log(id);
   const authPerson = authorizedPeople.find((person) => person.id === id); // get the authorized person
-
+  // console.log(recognizeData);
   try {
     if (authPerson) {
+
       // console.log(authPerson);
       authorizedPeople = authorizedPeople.filter((person) => person.id !== authPerson.id); // remove the auth person from the array
       const recognizedPerson = await saveRecognizedPerson(authPerson)
+      // appendDataToJson({name,recognizeData})
       setTimeout(() => {
         authorizedPeople.push(authPerson);
       }, 15 * 1000)

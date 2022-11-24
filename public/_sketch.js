@@ -348,8 +348,8 @@ async function gotFaces(error, result) {
       const person = getPersonInfoByName(facesList, detections[i]['label'])
       // console.log(person)
       if (person) {
-        
-        const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: person.id, name: person.name });
+        const recognizeData = detections[i];
+        const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: person.id, name: person.name , recognizeData : recognizeData });
         if (detectedPersonResponse['success']) {
 
           let json = {doorPulse: "1"};
