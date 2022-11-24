@@ -18,7 +18,7 @@ const iconsClassNames = {
   surprised: "fa-solid fa-face-surprise"
 }
 
-
+const MAX_EMOTION_COUNT = 6;
 const port = 5000;
 let faceapi;
 let detections = [];
@@ -34,7 +34,10 @@ const tableBody = document.getElementById('content-table');
 const BASE_API = `http://localhost:${port}`
 const cancelFormBtn = document.getElementById('cancelFormBtn');
 let dbPeopleData;
-
+let emo = '';
+let falsePositiveEmoCounter = 0;
+let isLivePerson = false;
+const FALSE_POSITIVE_EMO_COUNTER_THRESHHOLD = 2;
 
 cancelFormBtn.addEventListener('click', function () {
   document.getElementById('userImageCapture').src = '';
@@ -176,7 +179,7 @@ function displayExpressions(expressionsArr) {
     if (name !== 'unknown') {
       const highestEmotionScore = Object.keys(expressions).reduce(function (a, b) { return expressions[a] > expressions[b] ? a : b });
       const baseEmoji = `<div class='column'> <i class='${iconsClassNames[highestEmotionScore]} ${highestEmotionScore} fa-8x'></i> </div>`
-
+      
       document.getElementsByClassName("expressions")[0].innerHTML += `${name} ${getColorfulEmotion(baseEmoji, highestEmotionScore)}`
     }
   });
@@ -313,7 +316,6 @@ function faceReady() {
   })
   faceapi.detect(gotFaces);// Start detecting faces
 }
-
 async function sendPostRequest(route, json) {
   const rawResponse = await fetch(`${BASE_API}${route}`, {
     method: 'POST',
@@ -326,6 +328,8 @@ async function sendPostRequest(route, json) {
 
   return await rawResponse.json();
 }
+
+let count = 0;
 
 async function gotFaces(error, result) {
   if (error) {
@@ -340,6 +344,7 @@ async function gotFaces(error, result) {
     const maxDescriptorDistance = 0.4; // 0.6 is the current maximum distance 15.11
     const faceMatcher = new faceapi.model.FaceMatcher(faces, maxDescriptorDistance);
     const recognitionResults = detections.map(fd => faceMatcher.findBestMatch(fd.descriptor));
+    
     // console.log(recognitionResults)
     for (let i = 0; i < recognitionResults.length; i++) {
       detections[i]['label'] = recognitionResults[i]['_label'];
@@ -347,22 +352,50 @@ async function gotFaces(error, result) {
       // console.log(facesList);
       const person = getPersonInfoByName(facesList, detections[i]['label'])
       // console.log(person)
-      if (person) {
+      if (person){
+        count+=1;
         const recognizeData = detections[i];
-        const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: person.id, name: person.name , recognizeData : recognizeData });
-        if (detectedPersonResponse['success']) {
-
-          let json = {doorPulse: "1"};
-          sendPostRequest("/btn", json).then((res)=> console.log(res))
-          .catch((err)=> console.error(err));
-          
-          addToTable({
-            name: detectedPersonResponse.payload.name,
-            img: imagesOfPeople[person.id],
-            date: new Date()
-          });
+        const highestEmotionScore = Object.keys(recognizeData.expressions).reduce(function (a, b) { return recognizeData.expressions[a] > recognizeData.expressions[b] ? a : b });
+        // console.log(`highestEmotionScore ${highestEmotionScore}`);
+        (emo ==='') ? emo = highestEmotionScore : emo === highestEmotionScore ? emo : (emo = highestEmotionScore, falsePositiveEmoCounter++);
+        console.log(`EMO ${emo}`);
+        if (falsePositiveEmoCounter <= FALSE_POSITIVE_EMO_COUNTER_THRESHHOLD ) {
+          isLivePerson = false;
+          // console.log(`PIC ${falsePositiveEmoCounter}`);
+        } else {
+          isLivePerson = true;
+          console.log(`isLivePerson ${isLivePerson}`);
         }
-      }
+        console.log(count)
+        // console.log(typeof recognizeData.parts["rightEye"][0])
+        // console.log(recognizeData.label , highestEmotionScore ,  recognizeData.expressions);
+        // console.log(`BEFORE 10 ${count}`);
+
+        if(isLivePerson){
+          console.log("live person detected!");
+          falsePositiveEmoCounter = 0;
+          const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: person.id, name: person.name , recognizeData : recognizeData });
+          console.log(`detectedPersonResponse: ${detectedPersonResponse['success']}`);
+
+          if (detectedPersonResponse['success']) {
+            console.log(`10 ${count}`);
+            let json = {doorPulse: "1"};
+            count = 0;
+            sendPostRequest("/btn", json).then((res)=> {
+              console.log(res)
+            })
+            .catch((err)=> console.error(err));
+            
+            addToTable({
+              name: detectedPersonResponse.payload.name,
+              img: imagesOfPeople[person.id],
+              date: new Date()
+            });
+            console.log(recognizeData)
+  
+          }
+        } else if(count >= MAX_EMOTION_COUNT && !isLivePerson) count = 0;
+        }
 
     }
   }
