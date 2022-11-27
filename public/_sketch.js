@@ -38,6 +38,15 @@ let emo = '';
 let falsePositiveEmoCounter = 0;
 let isLivePerson = false;
 const FALSE_POSITIVE_EMO_COUNTER_THRESHHOLD = 2;
+const IMAGES_PER_PERSON = {};
+
+/* 
+prelimanary - capture descriptors on person screenshot
+1. stale face - max expression is persistant
+2. descriptors - compare to multiple captures of descriptors
+3. right/ left eye - check if ew can create a circle and detect eye color
+*/
+
 
 cancelFormBtn.addEventListener('click', function () {
   document.getElementById('userImageCapture').src = '';
@@ -259,9 +268,8 @@ function initUploadNewFaceButton() {
       // console.log(imgInput.value);
       const formData = new FormData(form);
     }
-  // })
 
-  form.addEventListener("formdata", (e) => {
+  form.addEventListener("formdata", async (e) => {
     // console.log("formdata fired");
     // Get the form data from the event object
     const data = e.formData;
@@ -270,6 +278,11 @@ function initUploadNewFaceButton() {
     for (const key of data.keys()) {
       json[key] = data.get(key);
     }
+    //console.log(json['img'])
+    
+    const fullFaceDescription = [await faceapi.model.detectSingleFace(json['img']).withFaceLandmarks().withFaceDescriptor()]
+    console.log(fullFaceDescription);
+    json['descriptors'] = fullFaceDescription;
 
     // console.log(json);
     sendPostRequest("/user-data", json).then((res) => console.log(res))
@@ -333,7 +346,7 @@ let count = 0;
 
 async function gotFaces(error, result) {
   if (error) {
-    console.log(error);
+    console.error(error);
     return;
   }
 

@@ -46,14 +46,16 @@ app.get("/", async (req, res) => {
 
 
 app.post('/user-data', async (req, res) => {
-  const { name, id, uploaded_file } = req.body;
+  const { name, id, uploaded_file , descriptors } = req.body;
+  console.log(descriptors);
   const base64img = getBase64StringFromDataURL(uploaded_file);
   const buffer = Buffer.from(base64img, "base64");
   const imagePath = `${IMG_PATH}/${name}-${id}.png`;
   fs.writeFileSync(imagePath, buffer);
 
   try {
-    await savePersonFace({ id, name, imagePath });
+    const savePerson = await savePersonFace({ id, name, imagePath , descriptors});
+    console.log(savePerson);
     authorizedPeople = await FaceModel.find(); // get all authorized people
     res.send({ success: true, message: "ok" });
   } catch (err) {
@@ -145,17 +147,35 @@ app.listen(PORT, (err) =>{
   console.log(err);
 });
 
-function initServer() {
-try {
+// //requiring path and fs modules
+// const path = require('path');
+// // const fs = require('fs');
+// //joining path of directory 
+// const directoryPath = path.join(__dirname, './public/lib');
+// //passsing directoryPath and callback function
+// fs.readdir(directoryPath, function (err, files) {
+//     //handling error
+//     if (err) {
+//         return console.log('Unable to scan directory: ' + err);
+//     } 
+//     //listing all files using forEach
+//     files.forEach(function (file) {
+//         // Do whatever you want to do with the file
+//         console.log(file); 
+//     });
+// });
 
-  app.listen(PORT, () =>
-    console.log("Server is running at http://127.0.0.1:" + PORT)
-  ).catch((err) => {console.log(err)});
-  // TODO: capture error listen EADDRINUSE: address already in use :::5000
-  // invode bash script to release port and re-run server
-  // sudo kill -9 `sudo lsof -t -i:5000`
+// function initServer() {
+// try {
 
-} catch {
+//   app.listen(PORT, () =>
+//     console.log("Server is running at http://127.0.0.1:" + PORT)
+//   ).catch((err) => {console.log(err)});
+//   // TODO: capture error listen EADDRINUSE: address already in use :::5000
+//   // invode bash script to release port and re-run server
+//   // sudo kill -9 `sudo lsof -t -i:5000`
 
-}
-}
+// } catch {
+
+//   }
+// }
