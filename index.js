@@ -46,8 +46,7 @@ app.get("/", async (req, res) => {
 
 
 app.post('/user-data', async (req, res) => {
-  const { name, id, uploaded_file , descriptors } = req.body;
-  console.log(descriptors);
+  const { name, id, uploaded_file } = req.body;
   const base64img = getBase64StringFromDataURL(uploaded_file);
   const buffer = Buffer.from(base64img, "base64");
   const imagePath = `${IMG_PATH}/${name}-${id}.png`;

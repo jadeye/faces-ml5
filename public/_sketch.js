@@ -280,9 +280,9 @@ function initUploadNewFaceButton() {
     }
     //console.log(json['img'])
     
-    const fullFaceDescription = [await faceapi.model.detectSingleFace(json['img']).withFaceLandmarks().withFaceDescriptor()]
-    console.log(fullFaceDescription);
-    json['descriptors'] = fullFaceDescription;
+    // const fullFaceDescription = [await faceapi.model.detectSingleFace(json['img']).withFaceLandmarks().withFaceDescriptor()]
+    // console.log(fullFaceDescription);
+    // json['descriptors'] = fullFaceDescription;
 
     // console.log(json);
     sendPostRequest("/user-data", json).then((res) => console.log(res))
