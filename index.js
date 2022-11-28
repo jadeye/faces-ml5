@@ -44,7 +44,9 @@ app.get("/", async (req, res) => {
   res.render("index.html");
 });
 
-
+/**
+ * This route create new person in the db and save his image in photos folder.
+ */
 app.post('/user-data', async (req, res) => {
   const { name, id, uploaded_file } = req.body;
   const base64img = getBase64StringFromDataURL(uploaded_file);
@@ -85,7 +87,9 @@ app.post('/detectPeople', async (req, res) => {
   }
 });
 
-
+/**
+ * get all people and their details from db
+ */
 app.get('/getFaces', async (req, res) => {
   try {
     const faces = await getAllFaces()
@@ -95,23 +99,18 @@ app.get('/getFaces', async (req, res) => {
   }
 })
 
+/**
+ * route load all image names from db. if there is no images it throw error.
+ */
 app.get('/getPhotosNames', (req, res) => {
   const images = getImagesNames();
   if (images.length) res.status(200).json(images);
   else res.status(400).json({ success: false, message: "no images in directory" });
 })
 
-app.post('/uploadFace', async (req, res) => {
-  const { id } = req.body
-  const recognizedPerson = await FaceModel.findOne({ id });
-  if (!recognizedPerson) {
-    await FaceModel.create(req.body);
-    res.status(200).send({ sucess: true });
-  } else {
-    res.status(400).send({ success: false });
-  }
-})
-
+/**
+ * this route responsible to get the puls to open the door.
+ */
 app.post('/btn', (req, res) => {
   cp.exec('./assets/doorPulse.sh', (error, stdout, stderr) => {
     if (error) {
@@ -126,6 +125,7 @@ app.post('/btn', (req, res) => {
   res.send({status: 200, message: "ok"});
 })
 
+// init db connection
 mongoose.connect('mongodb://localhost/recognized_faces')
   .then(async () => {
     console.log('DB Connection eastablished');
@@ -134,7 +134,6 @@ mongoose.connect('mongodb://localhost/recognized_faces')
     console.error(err);
   });
 
-// TODO: to check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
 app.listen(PORT, (err) =>{
   console.log("Server is running at http://127.0.0.1:" + PORT);
   // console.log(err);
