@@ -1,12 +1,14 @@
-const Expressions = {
-  Sad: "sad",
-  Angry: "angry",
-  Disgusted: "disgusted",
-  Fearful: "fearful",
-  Happy: "happy",
-  Neutral: "neutral",
-  Surprised: "surprised",
-}
+
+// const Expressions = {
+//   Sad: "sad",
+//   Angry: "angry",
+//   Disgusted: "disgusted",
+//   Fearful: "fearful",
+//   Happy: "happy",
+//   Neutral: "neutral",
+//   Surprised: "surprised",
+// }
+
 
 const iconsClassNames = {
   happy: "fas fa-smile",
@@ -17,6 +19,7 @@ const iconsClassNames = {
   neutral: "fa-solid fa-face-meh",
   surprised: "fa-solid fa-face-surprise"
 }
+
 
 const MAX_EMOTION_COUNT = 6;
 const port = 5000;
@@ -29,7 +32,7 @@ let face;
 let expressions;
 let cameraSwitchValue;
 let count = 0;
-
+let faceMatcher;
 const cameraSwitch = document.querySelector("input[name=cameraSwitch]");;
 const tableBody = document.getElementById('content-table');
 const BASE_API = `http://localhost:${port}`
@@ -86,8 +89,14 @@ async function getImageNames() {
 }
 
 
-// detetions functions
 
+
+/**
+ * @uses images call the getImageNames() function to fetch all photos names in the directory and save them in the variable.
+ * @param {string} imgUrl path to photos folder where there are all the images of people who saved in db.
+ * @param {Float32Array} descriptor Computed array of the face.
+ * @returns {Promiose} Array of labeled face descriptors of every person name and his image , using the faceapi library.
+ */
 async function getLabelFaceDescriptions() {
   let images = (await getImageNames());
   let promiseResult = await images;
@@ -119,8 +128,6 @@ async function getLabelFaceDescriptions() {
   )
 }
 
-// helpers functions for get name and id from the image file name
-
 function extractNameWithoutID(name) {
   const idIndex = name.indexOf('-');
   return name.slice(0, idIndex);
@@ -135,16 +142,25 @@ function getPersonInfoByName(facesList, name) {
   return facesList.find((face) => face.name === name);
 }
 
-// recognize functions
 
+/**
+ * @uses getLabelFaceDescriptions return promise that contains array of all people who saved in db and their face descriptors.
+ * @uses faceapi.detect(gotFaces) This method responsible to start the detection. gotFaces is another function.
+ * @uses faceMatcher global variable use to find match between person in frame to recognize him live. It get the faces from getLabelFaceDescriptions. 
+ */
 function faceReady() {
   getLabelFaceDescriptions()
   .then((data) => {
     faces = data;
+    faceMatcher = new faceapi.model.FaceMatcher(faces, MAX_DESCRIPTORS_DISTANCE);
   })
   faceapi.detect(gotFaces);// Start detecting faces
 }
 
+/**
+ *  @uses faces golbal array that have all the faces from the db.
+ *  @param {Object} result the result of the detection per frame. this object contains all the detected people it captured in this frame.
+ */
 async function gotFaces(error, result) {
   if (error) {
     console.error(error);
@@ -155,7 +171,7 @@ async function gotFaces(error, result) {
   face = detections.length ? detections[0] : null; //if there is at least one detection
 
   if (faces) {
-    const faceMatcher = new faceapi.model.FaceMatcher(faces, MAX_DESCRIPTORS_DISTANCE);
+    // const faceMatcher = new faceapi.model.FaceMatcher(faces, MAX_DESCRIPTORS_DISTANCE);
     const recognitionResults = detections.map(fd => faceMatcher.findBestMatch(fd.descriptor));
 
     for (let i = 0; i < recognitionResults.length; i++) {
