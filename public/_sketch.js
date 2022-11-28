@@ -44,11 +44,11 @@ let isLivePerson = false;
 const FALSE_POSITIVE_EMO_COUNTER_THRESHHOLD = 2;
 const IMAGES_PER_PERSON = {};
 const MAX_DESCRIPTORS_DISTANCE = 0.4 // 0.6 is the current maximum distance 15.11
-const imagesOfPeople = {}; 
+const imagesOfPeople = {};
 
 
 
-initDomFunction(); 
+initDomFunction();
 
 /**
  * Setup function responsible to init the canvas , no need to call the function it uses p5.js
@@ -150,16 +150,20 @@ function getPersonInfoByName(facesList, name) {
  */
 function faceReady() {
   getLabelFaceDescriptions()
-  .then((data) => {
-    faces = data;
-    faceMatcher = new faceapi.model.FaceMatcher(faces, MAX_DESCRIPTORS_DISTANCE);
-  })
+    .then((data) => {
+      faces = data;
+      faceMatcher = new faceapi.model.FaceMatcher(faces, MAX_DESCRIPTORS_DISTANCE);
+    })
   faceapi.detect(gotFaces);// Start detecting faces
 }
 
 /**
  *  @uses faces golbal array that have all the faces from the db.
+ *  @uses faceMatcher use to find the best match and recognize the entered person.
  *  @param {Object} result the result of the detection per frame. this object contains all the detected people it captured in this frame.
+ *  @description for every frame faceMatcher find all recognized people for a match it send post request to server and for the next 15s it not gonna allow him
+ *               to enter again. for every recognize person the function send puls to server in order to open the door.
+ * 
  */
 async function gotFaces(error, result) {
   if (error) {
@@ -180,45 +184,22 @@ async function gotFaces(error, result) {
       const person = getPersonInfoByName(dbPeopleData.faces, detections[i]['label']);
 
       if (person) {
-        count += 1;
         const recognizeData = detections[i];
-        const highestEmotionScore = Object.keys(recognizeData.expressions).reduce(function (a, b) { return recognizeData.expressions[a] > recognizeData.expressions[b] ? a : b });
+        const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: person.id, name: person.name, recognizeData: recognizeData });
 
-        (emo === '') ? emo = highestEmotionScore : emo === highestEmotionScore ? emo : (emo = highestEmotionScore, falsePositiveEmoCounter++);
+        if (detectedPersonResponse['success']) { // check if person has been detect.
+          let json = { doorPulse: "1" };
 
-        console.log(`EMO ${emo}`);
+          sendPostRequest("/btn", json).then((res) => { // post request which send puls to open the door.
+            console.log(res)
+          }).catch((err) => console.error(err));
 
-        if (falsePositiveEmoCounter <= FALSE_POSITIVE_EMO_COUNTER_THRESHHOLD) {
-          isLivePerson = false;
-        } else {
-          isLivePerson = true;
-          console.log(`isLivePerson ${isLivePerson}`);
+          addToTable({
+            name: detectedPersonResponse.payload.name,
+            img: imagesOfPeople[person.id],
+            date: new Date()
+          });
         }
-        console.log(count)
-
-        if (isLivePerson) {
-          falsePositiveEmoCounter = 0;
-          const detectedPersonResponse = await sendPostRequest('/detectPeople', { id: person.id, name: person.name, recognizeData: recognizeData });
-          
-          console.log("live person detected!");
-          console.log(`detectedPersonResponse: ${detectedPersonResponse['success']}`);
-
-          if (detectedPersonResponse['success']) {
-            console.log(`10 ${count}`);
-            let json = { doorPulse: "1" };
-            count = 0;
-
-            sendPostRequest("/btn", json).then((res) => {
-              console.log(res)
-            }).catch((err) => console.error(err));
-
-            addToTable({
-              name: detectedPersonResponse.payload.name,
-              img: imagesOfPeople[person.id],
-              date: new Date()
-            });
-          }
-        } else if (count >= MAX_EMOTION_COUNT && !isLivePerson) count = 0;
       }
     }
   }
@@ -231,6 +212,11 @@ async function gotFaces(error, result) {
   faceapi.detect(gotFaces);// Call the function again at here
 }
 
+/**
+ * 
+ * @param {*} detections detected people
+ * @description draw box boundaries around for each person face
+ */
 function drawBoxs(detections) {
   if (detections && detections.length > 0) {//If at least 1 face is detected
     for (f = 0; f < detections.length; f++) {
@@ -246,6 +232,11 @@ function drawBoxs(detections) {
   }
 }
 
+/**
+ * 
+ * @param {*} detections detected people
+ * @description draw landmarks on every detect person
+ */
 function drawLandmarks(detections) {
   if (detections && detections.length > 0) {//If at least 1 face is detected
     for (f = 0; f < detections.length; f++) {
@@ -259,7 +250,11 @@ function drawLandmarks(detections) {
   }
 }
 
-
+/**
+ * 
+ * @param {*} expressionsArr expressions of all detected people
+ * @description responsible to draw all face expressions on grid. match color to expression.
+ */
 function displayExpressions(expressionsArr) {
   document.getElementsByClassName("expressions")[0].innerHTML = "";
   expressionsArr.forEach(expression => {
@@ -281,11 +276,19 @@ function drawExpressions(detections) {
   }
 }
 
-
+/**
+ * 
+ * @param {*} baseEmoji html wrapper for color to draw face expression
+ * @param {string} expression the expression name
+ * @returns 
+ */
 function getColorfulEmotion(baseEmoji, expression) {
   return `<h1> ${baseEmoji} ${expression.toUpperCase()}</h1>`;
 }
 
+/**
+ * this function use throttle mechanisem to draw on the dom the expressions , in efficient way.
+ */
 const updateThrottleText = throttle((expressions) => {
   displayExpressions(expressions)
 }, 1000)
@@ -319,7 +322,7 @@ function throttle(cb, delay = 1000) {
 
 
 function addToTable({ name, img, date }) {
-  if(name && img && date){
+  if (name && img && date) {
     let table = document.getElementById("content-table");
     let row = table.insertRow(1);
     let new_name = row.insertCell(0);
@@ -339,7 +342,7 @@ function addToTable({ name, img, date }) {
 /**
  * Calls all other function that involve in DOM manipulation 
  */
-function initDomFunction(){
+function initDomFunction() {
   initFunctionalityToCameraSwitchButton();
   initUploadNewFaceButton();
   initCancelFormButton();
@@ -349,7 +352,7 @@ function initDomFunction(){
  * CheckBox toggle between face recognition and 
  * Snapshot of a new user
  */
- function initFunctionalityToCameraSwitchButton(){
+function initFunctionalityToCameraSwitchButton() {
   cameraSwitch.addEventListener('change', function () {
     if (this.checked) {
       document.getElementById('canvas').style.visibility = 'visible';
@@ -357,7 +360,7 @@ function initDomFunction(){
       document.getElementById('personName').disabled = true;
       document.getElementById('submitBtn').disabled = true;
       document.getElementById('cancelFormBtn').disabled = true;
-  
+
     } else {
       document.getElementById('canvas').style.visibility = 'hidden';
       document.getElementById('personId').disabled = false;
@@ -366,7 +369,7 @@ function initDomFunction(){
       document.getElementById('cancelFormBtn').disabled = false;
     }
     cameraSwitchValue = this.checked;
-  });  
+  });
 }
 
 /***
@@ -410,11 +413,10 @@ function initUploadNewFaceButton() {
     }
 
     sendPostRequest("/user-data", json).
-    then((res) => {
-      console.log(res);
-      alert('Added new person please refresh the browser');
-    })
-    .catch((err) => console.error(err));
+      then((res) => {
+        console.log(res);
+      })
+      .catch((err) => console.error(err));
   });
 
   userName.addEventListener('focusout', (event) => {
@@ -450,7 +452,7 @@ function initUploadNewFaceButton() {
   });
 }
 
-function initCancelFormButton(){  
+function initCancelFormButton() {
   cancelFormBtn.addEventListener('click', function () {
     document.getElementById('userImageCapture').src = '';
   })
@@ -468,6 +470,12 @@ async function loadFacesFromDB() {
   })
 }
 
+/**
+ * 
+ * @param {string} route url to specific request.
+ * @param {JSON} json  the data to send in post request.
+ * @returns 
+ */
 async function sendPostRequest(route, json) {
   const rawResponse = await fetch(`${BASE_API}${route}`, {
     method: 'POST',

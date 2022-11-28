@@ -53,7 +53,7 @@ app.post('/user-data', async (req, res) => {
   fs.writeFileSync(imagePath, buffer);
 
   try {
-    const savePerson = await savePersonFace({ id, name, imagePath , descriptors});
+    const savePerson = await savePersonFace({ id, name, imagePath});
     console.log(savePerson);
     authorizedPeople = await FaceModel.find(); // get all authorized people
     res.send({ success: true, message: "ok" });
@@ -137,5 +137,5 @@ mongoose.connect('mongodb://localhost/recognized_faces')
 // TODO: to check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
 app.listen(PORT, (err) =>{
   console.log("Server is running at http://127.0.0.1:" + PORT);
-  console.log(err);
+  // console.log(err);
 });
