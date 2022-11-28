@@ -62,19 +62,16 @@ app.post('/user-data', async (req, res) => {
   }
 })
 
-// TODO: to check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
+// check if person exists in the arr. if he's so remove him for 15s and send a response back to client. after 15s push him back.
 app.post('/detectPeople', async (req, res) => {
-  const { id , name , recognizeData } = req.body; // recognizeitionInfo - all the relevant
-  // console.log(id);
+  const { id } = req.body; 
   const authPerson = authorizedPeople.find((person) => person.id === id); // get the authorized person
-  // console.log(recognizeData);
   try {
     if (authPerson) {
 
-      // console.log(authPerson);
       authorizedPeople = authorizedPeople.filter((person) => person.id !== authPerson.id); // remove the auth person from the array
       const recognizedPerson = await saveRecognizedPerson(authPerson)
-      // appendDataToJson({name,recognizeData})
+
       setTimeout(() => {
         authorizedPeople.push(authPerson);
       }, 15 * 1000)
@@ -106,7 +103,6 @@ app.get('/getPhotosNames', (req, res) => {
 
 app.post('/uploadFace', async (req, res) => {
   const { id } = req.body
-  // await writeToJsonFile(jsonObj, path.join(__dirname, '../data/people.json'));
   const recognizedPerson = await FaceModel.findOne({ id });
   if (!recognizedPerson) {
     await FaceModel.create(req.body);
@@ -117,7 +113,6 @@ app.post('/uploadFace', async (req, res) => {
 })
 
 app.post('/btn', (req, res) => {
-  // console.log(req.body);
   cp.exec('./assets/doorPulse.sh', (error, stdout, stderr) => {
     if (error) {
         // console.log(`error: ${error.message}`);
@@ -127,7 +122,6 @@ app.post('/btn', (req, res) => {
         // console.log(`stderr: ${stderr}`);
         return;
     }
-    // console.log(`stdout: ${stdout}`);
   });
   res.send({status: 200, message: "ok"});
 })
@@ -145,36 +139,3 @@ app.listen(PORT, (err) =>{
   console.log("Server is running at http://127.0.0.1:" + PORT);
   console.log(err);
 });
-
-// //requiring path and fs modules
-// const path = require('path');
-// // const fs = require('fs');
-// //joining path of directory 
-// const directoryPath = path.join(__dirname, './public/lib');
-// //passsing directoryPath and callback function
-// fs.readdir(directoryPath, function (err, files) {
-//     //handling error
-//     if (err) {
-//         return console.log('Unable to scan directory: ' + err);
-//     } 
-//     //listing all files using forEach
-//     files.forEach(function (file) {
-//         // Do whatever you want to do with the file
-//         console.log(file); 
-//     });
-// });
-
-// function initServer() {
-// try {
-
-//   app.listen(PORT, () =>
-//     console.log("Server is running at http://127.0.0.1:" + PORT)
-//   ).catch((err) => {console.log(err)});
-//   // TODO: capture error listen EADDRINUSE: address already in use :::5000
-//   // invode bash script to release port and re-run server
-//   // sudo kill -9 `sudo lsof -t -i:5000`
-
-// } catch {
-
-//   }
-// }
