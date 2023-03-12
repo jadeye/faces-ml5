@@ -1,0 +1,24 @@
+version: '3.4'
+
+services:
+
+  face_models:
+    image: ml_face_models
+    restart: always
+    ports:
+      - 4040:4040
+
+  face_recognition:
+    image: faces_ml5
+    restart: always
+    ports:
+      - "5000:5000"
+  db:
+    image: mongo
+    restart: always
+    ports:
+      - 27018:27017
+
+volumes:
+  recognized_faces:
+    driver: local
