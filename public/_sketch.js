@@ -88,9 +88,6 @@ async function getImageNames() {
   return await fetch(`${BASE_API}/getPhotosNames`);
 }
 
-
-
-
 /**
  * @uses images call the getImageNames() function to fetch all photos names in the directory and save them in the variable.
  * @param {string} imgUrl path to photos folder where there are all the images of people who saved in db.
@@ -101,7 +98,6 @@ async function getLabelFaceDescriptions() {
   let images = (await getImageNames());
   let promiseResult = await images;
   const photos = await promiseResult.json();
-
 
   return await Promise.all(
     photos.map(async label => {
@@ -141,7 +137,6 @@ function extractID(name) {
 function getPersonInfoByName(facesList, name) {
   return facesList.find((face) => face.name === name);
 }
-
 
 /**
  * @uses getLabelFaceDescriptions return promise that contains array of all people who saved in db and their face descriptors.
@@ -190,7 +185,7 @@ async function gotFaces(error, result) {
         if (detectedPersonResponse['success']) { // check if person has been detect.
           let json = { doorPulse: "1" };
 
-          sendPostRequest("/btn", json).then((res) => { // post request which send puls to open the door.
+          sendPostRequest("/btn", json).then((res) => { // post request which send pulse to open the door.
             console.log(res)
           }).catch((err) => console.error(err));
 

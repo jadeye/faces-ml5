@@ -1,3 +1,8 @@
+// These lines make "require" available
+// import { createRequire } from "module";
+// const require = createRequire(import.meta.url);
+
+
 require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
@@ -15,6 +20,14 @@ const { getImagesNames } = require("./utils/imagesHelper.js");
 const { saveRecognizedPerson } = require("./services/recognition.js");
 const cp = require('child_process');
 const { appendDataToJson } = require("./utils/filesUtils.js");
+
+// const stackTrace = require('stack-trace');
+// import { get } from 'stack-trace';
+
+// setInterval(()=>{
+//   console.log(stackTrace.get())
+// },1000 * 5);
+
 let authorizedPeople = [];
 
 const getBase64StringFromDataURL = (dataURL) =>
@@ -112,13 +125,14 @@ app.get('/getPhotosNames', (req, res) => {
  * this route responsible to get the puls to open the door.
  */
 app.post('/btn', (req, res) => {
+  console.log(`Button pulse POST request ${req.doorPulse}`)
   cp.exec('./assets/doorPulse.sh', (error, stdout, stderr) => {
     if (error) {
-        // console.log(`error: ${error.message}`);
+        console.log(`error: ${error.message}`);
         return;
     }
     if (stderr) {
-        // console.log(`stderr: ${stderr}`);
+        console.log(`stderr: ${stderr}`);
         return;
     }
   });

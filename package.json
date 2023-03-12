@@ -30,6 +30,8 @@
     "mongoose": "^6.7.0",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
-    "node-sass": "^7.0.3"
+    "node-sass": "^7.0.3",
+    "request": "^2.88.2",
+    "stack-trace": "^1.0.0-pre1"
   }
 }
